@@ -9,7 +9,6 @@ const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
 // Allow requests from any local network device (iPhone on same WiFi)
 app.use((req, res, next) => {
