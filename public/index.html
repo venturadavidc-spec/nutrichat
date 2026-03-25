@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NutriChat" />
+  <meta name="theme-color" content="#1D9E75" />
+  <title>NutriChat</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- Header -->
+    <header>
+      <div id="date-display"></div>
+      <div class="header-right">
+        <div class="server-status">
+          <div class="status-dot" id="status-dot"></div>
+          <span id="status-text">Connecting...</span>
+        </div>
+      </div>
+    </header>
+
+<!-- Macro summary cards -->
+<section class="macro-section">
+  <div class="macro-grid">
+    <div class="macro-card">
+      <div class="macro-label">Calories</div>
+      <div class="macro-value"><span id="tot-cal">0</span><span class="macro-unit">kcal</span></div>
+      <div class="progress-wrap"><div class="progress-bar cal-bar" id="pb-cal"></div></div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">Protein</div>
+      <div class="macro-value"><span id="tot-pro">0</span><span class="macro-unit">g</span></div>
+      <div class="progress-wrap"><div class="progress-bar pro-bar" id="pb-pro"></div></div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">Fiber</div>
+      <div class="macro-value"><span id="tot-fiber">0</span><span class="macro-unit">g</span></div>
+      <div class="progress-wrap"><div class="progress-bar fiber-bar" id="pb-fiber"></div></div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">Carbs</div>
+      <div class="macro-value"><span id="tot-carb">0</span><span class="macro-unit">g</span></div>
+      <div class="progress-wrap"><div class="progress-bar carb-bar" id="pb-carb"></div></div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">Fat</div>
+      <div class="macro-value"><span id="tot-fat">0</span><span class="macro-unit">g</span></div>
+      <div class="progress-wrap"><div class="progress-bar fat-bar" id="pb-fat"></div></div>
+    </div>
+  </div>
+</section>
+
+    <!-- Meal log -->
+    <section class="log-section">
+      <div class="section-header">
+        <span class="section-label">Today's log</span>
+        <button class="clear-btn" onclick="resetDay()">Clear</button>
+      </div>
+      <div id="log-list">
+        <div class="empty-log">Nothing logged yet.</div>
+      </div>
+    </section>
+
+    <!-- Chat input -->
+    <section class="chat-section">
+      <div class="section-label">Log a meal</div>
+      <div class="chat-area">
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg ai">
+            <div class="ai-bubble">Hey Dave — what did you eat? Describe it naturally and I'll handle the rest.</div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input
+            id="chat-input"
+            type="text"
+            placeholder="e.g. two eggs and toast with butter"
+            autocomplete="off"
+            autocorrect="off"
+          />
+          <button id="send-btn" onclick="sendMessage()">Log</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('[NutriChat] Service worker registered'))
+        .catch(err => console.log('[NutriChat] SW error:', err));
+    }
+  </script>
+
+</body>
+</html>
