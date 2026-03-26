@@ -55,7 +55,7 @@
       display: flex; flex-direction: column;
       height: 100dvh; max-width: 480px; margin: 0 auto; position: relative;
     }
- 
+
     /* ─── HEADER ─── */
     header {
       flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
@@ -82,11 +82,11 @@
     .header-profile-btn svg { width: 16px; height: 16px; color: var(--text-dim); }
     .header-profile-btn.has-profile { border-color: var(--green-dim); }
     .header-profile-btn.has-profile svg { color: var(--green); }
- 
+
     /* ─── VIEWS ─── */
     .view { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; flex-direction: column; }
     .view.active { display: flex; }
- 
+
     /* ─── CHAT VIEW ─── */
     #view-chat { padding-bottom: 0; }
     #chat-messages {
@@ -110,7 +110,7 @@
       padding: 7px 14px; font-size: 13px; color: var(--text-dim); cursor: pointer; transition: all 0.15s;
     }
     .chip:active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
- 
+
     .bubble-row { display: flex; gap: 8px; animation: bubbleIn 0.2s ease; }
     @keyframes bubbleIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
     .bubble-row.user { flex-direction: row-reverse; }
@@ -125,7 +125,7 @@
     .bubble-row.user .bubble { background: var(--user-bubble); border: 1px solid rgba(34,197,94,0.2); border-bottom-right-radius: 4px; }
     .bubble-time { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 4px; padding: 0 4px; }
     .bubble-row.user .bubble-time { text-align: right; }
- 
+
     .macro-card {
       margin-top: 10px; background: var(--surface2); border: 1px solid var(--border);
       border-radius: var(--radius-sm); padding: 10px 6px;
@@ -139,14 +139,14 @@
     .macro-val.carb  { color: var(--amber); }
     .macro-val.fat   { color: var(--coral); }
     .macro-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
- 
+
     .activity-card {
       margin-top: 10px; background: var(--surface2); border: 1px solid var(--border);
       border-radius: var(--radius-sm); padding: 10px 12px;
       display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
     }
     .activity-card .macro-val { color: var(--blue); }
- 
+
     #chat-input-area {
       flex-shrink: 0; background: var(--bg); border-top: 1px solid var(--border);
       padding: 10px 12px; display: flex; align-items: flex-end; gap: 10px;
@@ -168,7 +168,7 @@
     #send-btn svg { width: 18px; height: 18px; color: #0f1410; }
     #send-btn:disabled { background: var(--surface3); }
     #send-btn:disabled svg { color: var(--text-muted); }
- 
+
     .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
     .typing-indicator span {
       width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%;
@@ -177,7 +177,7 @@
     .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
     .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
     @keyframes bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1);opacity:1} }
- 
+
     /* ─── TODAY VIEW ─── */
     #view-today { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
     .section-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
@@ -204,7 +204,7 @@
     .today-macro-val.carb  { color: var(--amber); }
     .today-macro-val.fat   { color: var(--coral); }
     .today-macro-lbl { font-size: 11px; color: var(--text-muted); }
- 
+
     .activity-strip {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 14px 16px; display: flex; align-items: center; gap: 14px;
@@ -216,7 +216,7 @@
     .activity-icon svg { width: 18px; height: 18px; color: var(--blue); }
     .activity-label { font-size: 14px; color: var(--text); }
     .activity-cal { font-family: var(--mono); font-size: 13px; color: var(--blue); margin-left: auto; }
- 
+
     .meal-entry {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start;
@@ -229,7 +229,7 @@
     .meal-entry-cal-unit { font-size: 10px; color: var(--text-muted); }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
     .empty-state-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
- 
+
     /* ─── LOG VIEW ─── */
     #view-log { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 0; }
     .log-filter-row {
@@ -259,7 +259,7 @@
     .log-entry-detail { font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-top: 2px; }
     .log-entry-cal { font-family: var(--mono); font-size: 14px; color: var(--green); flex-shrink: 0; }
     .log-entry-cal.activity { color: var(--blue); }
- 
+
     /* ─── PROFILE VIEW ─── */
     #view-profile { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
     .profile-header {
@@ -273,7 +273,7 @@
     .profile-avatar svg { width: 30px; height: 30px; color: var(--green); }
     .profile-name { font-size: 20px; font-weight: 600; color: var(--text); }
     .profile-subtitle { font-size: 13px; color: var(--text-dim); }
- 
+
     .profile-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
     }
@@ -289,7 +289,7 @@
     .profile-field:last-child { border-bottom: none; }
     .profile-field-label { font-size: 14px; color: var(--text-dim); }
     .profile-field-value { font-family: var(--mono); font-size: 14px; color: var(--text); font-weight: 500; }
- 
+
     .profile-form { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
@@ -319,7 +319,7 @@
       padding: 10px 14px; font-size: 13px; color: var(--green); text-align: center;
       display: none;
     }
- 
+
     /* ─── PROFILE MODAL (first launch) ─── */
     .modal-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.75);
@@ -337,7 +337,7 @@
     .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto -8px; }
     .modal-title { font-size: 20px; font-weight: 600; color: var(--text); text-align: center; }
     .modal-sub { font-size: 14px; color: var(--text-dim); text-align: center; line-height: 1.5; margin-top: -8px; }
- 
+
     /* ─── BOTTOM NAV ─── */
     #bottom-nav {
       flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -354,12 +354,34 @@
     .nav-tab.active .nav-tab-label { color: var(--green); }
     .nav-tab-pip { position: absolute; top: 6px; width: 4px; height: 4px; background: var(--green); border-radius: 50%; display: none; }
     .nav-tab.active .nav-tab-pip { display: block; }
-    ::-webkit-scrollbar { width: 0; }
+    .log-entry-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+    .btn-edit, .btn-delete {
+      border: none; border-radius: var(--radius-sm); padding: 4px 8px;
+      font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-edit { background: var(--surface3); color: var(--text-dim); }
+    .btn-edit:active { background: var(--green-glow); color: var(--green); }
+    .btn-delete { background: var(--surface3); color: var(--text-muted); }
+    .btn-delete:active { background: rgba(248,113,113,0.15); color: var(--coral); }
+    .edit-mode-banner {
+      background: var(--amber-glow, rgba(245,158,11,0.12)); border: 1px solid var(--amber-dim, #d97706);
+      border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; color: var(--amber, #f59e0b);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0;
+    }
+    .edit-mode-banner span { flex: 1; }
+    .edit-cancel-btn { background: none; border: none; color: var(--amber, #f59e0b); font-size: 13px; cursor: pointer; padding: 0; font-family: var(--font); }
+    .clear-day-btn {
+      width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-sm);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--coral, #f87171); font-family: var(--font); font-size: 13px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .clear-day-btn:active { background: rgba(248,113,113,0.1); border-color: var(--coral-dim, #ef4444); }
   </style>
 </head>
 <body>
 <div id="app">
- 
+
   <!-- HEADER -->
   <header>
     <div class="header-logo">
@@ -381,7 +403,7 @@
       </div>
     </div>
   </header>
- 
+
   <!-- CHAT VIEW -->
   <div class="view active" id="view-chat">
     <div id="chat-messages">
@@ -401,6 +423,10 @@
         </div>
       </div>
     </div>
+    <div id="edit-banner" class="edit-mode-banner" style="display:none; margin: 0 12px 0;">
+      <span id="edit-banner-text">Editing entry</span>
+      <button class="edit-cancel-btn" onclick="cancelEdit()">Cancel</button>
+    </div>
     <div id="chat-input-area">
       <textarea id="chat-input" placeholder="Log food or activity…" rows="1"
         autocomplete="off" autocorrect="on" autocapitalize="sentences"></textarea>
@@ -411,7 +437,7 @@
       </button>
     </div>
   </div>
- 
+
   <!-- TODAY VIEW -->
   <div class="view" id="view-today">
     <div class="section-label">Daily overview</div>
@@ -464,7 +490,7 @@
       </div>
     </div>
   </div>
- 
+
   <!-- LOG VIEW -->
   <div class="view" id="view-log">
     <div class="log-filter-row">
@@ -477,8 +503,9 @@
       <div class="empty-state-icon">📋</div>
       Nothing logged yet.<br>Use Chat to start tracking.
     </div>
+    <button class="clear-day-btn" id="clear-day-btn" onclick="clearToday()" style="display:none;">Clear today's log</button>
   </div>
- 
+
   <!-- PROFILE VIEW -->
   <div class="view" id="view-profile">
     <div class="profile-header">
@@ -491,7 +518,7 @@
       <div class="profile-name" id="profile-display-name">Your Profile</div>
       <div class="profile-subtitle" id="profile-display-sub">Set up your profile for accurate tracking</div>
     </div>
- 
+
     <div class="profile-card">
       <div class="profile-card-title">Personal Info</div>
       <div class="profile-form">
@@ -524,7 +551,7 @@
       </div>
     </div>
   </div>
- 
+
   <!-- FIRST LAUNCH MODAL -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal-sheet">
@@ -563,7 +590,7 @@
       </div>
     </div>
   </div>
- 
+
   <!-- BOTTOM NAV -->
   <nav id="bottom-nav">
     <div class="nav-tab active" data-view="chat" onclick="switchView('chat')">
@@ -598,14 +625,14 @@
       <span class="nav-tab-label">Profile</span>
     </div>
   </nav>
- 
+
 </div>
- 
+
 <script>
 // ─── STORAGE KEYS ─────────────────────────────────────────────────────────────
 const STORAGE_KEY   = 'nutrichat_v1';
 const PROFILE_KEY   = 'nutrichat_profile';
- 
+
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; }
@@ -615,7 +642,7 @@ function saveProfileData(p) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
 }
 function getProfile() { return loadProfile(); }
- 
+
 function populateProfileForm(p) {
   if (!p) return;
   document.getElementById('prof-name').value       = p.name || '';
@@ -624,7 +651,7 @@ function populateProfileForm(p) {
   document.getElementById('prof-height-in').value  = p.heightIn || '';
   document.getElementById('prof-activity').value   = p.activityLevel || 'Moderately Active';
 }
- 
+
 function updateProfileDisplay(p) {
   if (!p) return;
   const nameEl = document.getElementById('profile-display-name');
@@ -642,7 +669,7 @@ function updateProfileDisplay(p) {
   const btn = document.getElementById('header-profile-btn');
   btn.classList.toggle('has-profile', !!p.name || !!p.weightLbs);
 }
- 
+
 function saveProfile() {
   const p = {
     name:          document.getElementById('prof-name').value.trim(),
@@ -657,7 +684,7 @@ function saveProfile() {
   banner.style.display = 'block';
   setTimeout(() => { banner.style.display = 'none'; }, 2500);
 }
- 
+
 function saveProfileFromModal() {
   const p = {
     name:          document.getElementById('modal-name').value.trim(),
@@ -671,21 +698,21 @@ function saveProfileFromModal() {
   populateProfileForm(p);
   dismissModal();
 }
- 
+
 function dismissModal() {
   document.getElementById('profile-modal').classList.add('hidden');
 }
- 
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { entries: [], messages: [] }; }
   catch { return { entries: [], messages: [] }; }
 }
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
- 
+
 let state = loadState();
 let currentFilter = 'all';
- 
+
 // ─── DATE HELPERS ─────────────────────────────────────────────────────────────
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function formatTime(iso) {
@@ -702,13 +729,13 @@ function formatDateLabel(key) {
   if (key === yesterday) return 'Yesterday';
   return new Date(key+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
- 
+
 function updateHeaderDate() {
   document.getElementById('header-date').textContent =
     new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 updateHeaderDate();
- 
+
 // ─── VIEW SWITCHING ───────────────────────────────────────────────────────────
 function switchView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -719,13 +746,13 @@ function switchView(name) {
   if (name === 'log')     renderLog();
   if (name === 'profile') populateProfileForm(getProfile());
 }
- 
+
 // ─── CHAT ─────────────────────────────────────────────────────────────────────
 const chatInput   = document.getElementById('chat-input');
 const sendBtn     = document.getElementById('send-btn');
 const chatMsgs    = document.getElementById('chat-messages');
 const chatWelcome = document.getElementById('chat-welcome');
- 
+
 chatInput.addEventListener('input', () => {
   sendBtn.disabled = !chatInput.value.trim();
   chatInput.style.height = 'auto';
@@ -735,109 +762,166 @@ chatInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 sendBtn.addEventListener('click', sendMessage);
- 
+
 function fillInput(text) {
   chatInput.value = text;
   chatInput.dispatchEvent(new Event('input'));
   chatInput.focus();
 }
- 
+
 // Detect if input looks like activity
 const ACTIVITY_KWS = ['walk','run','ran','jog','workout','bike','rode','gym','yoga','swim','lift','yardwork','mow','hike','hiked','elliptical','treadmill','cycling','played','tennis','basketball','golf','soccer','exercise'];
 function looksLikeActivity(text) {
-  const lower = text.toLowerCase();
-  return ACTIVITY_KWS.some(k => lower.includes(k));
+  const l = text.toLowerCase();
+  return ACTIVITY_KWS.some(k => l.includes(k));
 }
- 
+
+const SUMMARY_KWS = ['what did i eat','today\'s summary','show me today','how much','my totals','what have i','summary','daily total','how many calories','what i ate'];
+function looksLikeSummary(text) {
+  const l = text.toLowerCase();
+  return SUMMARY_KWS.some(k => l.includes(k));
+}
+
+// Edit state
+let editingEntryId = null;
+
+function startEdit(id) {
+  const entry = state.entries.find(e => e.id === id);
+  if (!entry) return;
+  editingEntryId = id;
+  switchView('chat');
+  chatInput.value = entry.name;
+  chatInput.dispatchEvent(new Event('input'));
+  chatInput.focus();
+  document.getElementById('edit-banner').style.display = 'flex';
+  document.getElementById('edit-banner-text').textContent = `Editing: ${entry.name}`;
+}
+
+function cancelEdit() {
+  editingEntryId = null;
+  chatInput.value = '';
+  chatInput.dispatchEvent(new Event('input'));
+  document.getElementById('edit-banner').style.display = 'none';
+}
+
+function deleteEntry(id) {
+  state.entries = state.entries.filter(e => e.id !== id);
+  saveState();
+  renderLog();
+  renderToday();
+}
+
+function clearToday() {
+  const today = todayKey();
+  state.entries = state.entries.filter(e => e.date !== today);
+  saveState();
+  renderLog();
+  renderToday();
+  appendBubble('ai', 'Today\'s log has been cleared.');
+  saveMessage('ai', 'Today\'s log has been cleared.');
+}
+
+function handleSummaryRequest() {
+  const today = todayKey();
+  const food     = (state.entries||[]).filter(e => e.date === today && e.type === 'food');
+  const activity = (state.entries||[]).filter(e => e.date === today && e.type === 'activity');
+
+  if (!food.length && !activity.length) {
+    appendBubble('ai', "Nothing logged yet today. Tell me what you ate to get started.");
+    saveMessage('ai', "Nothing logged yet today. Tell me what you ate to get started.");
+    return;
+  }
+
+  const totCal   = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
+  const totP     = food.reduce((s,e) => s+(e.macros?.p||0), 0);
+  const totFiber = food.reduce((s,e) => s+(e.macros?.fiber||0), 0);
+  const totC     = food.reduce((s,e) => s+(e.macros?.c||0), 0);
+  const totF     = food.reduce((s,e) => s+(e.macros?.f||0), 0);
+  const totBurned = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
+
+  let reply = `Here's your day so far — ${food.length} meal${food.length!==1?'s':''} logged`;
+  if (totBurned) reply += `, ${totBurned} kcal burned from activity`;
+  reply += '.';
+
+  const macros = { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF };
+  appendBubble('ai', reply, macros);
+  saveMessage('ai', reply, macros);
+}
+
 async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
- 
+
   hideWelcome();
   appendBubble('user', text);
   saveMessage('user', text);
- 
   chatInput.value = '';
   chatInput.style.height = 'auto';
   sendBtn.disabled = true;
- 
+
+  // Handle summary client-side — no API call needed
+  if (!editingEntryId && looksLikeSummary(text)) {
+    document.getElementById('edit-banner').style.display = 'none';
+    handleSummaryRequest();
+    sendBtn.disabled = false;
+    return;
+  }
+
   const typingRow = appendTyping();
   const profile = getProfile();
   const isActivity = looksLikeActivity(text);
- 
+  const isEditing = editingEntryId !== null;
+
   try {
     const endpoint = isActivity ? '/analyze-activity' : '/analyze';
     const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, profile }),
       signal: AbortSignal.timeout(15000)
     });
- 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `Server error ${res.status}`);
-    }
- 
+    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.message||`Server error ${res.status}`); }
     const parsed = await res.json();
     typingRow.remove();
- 
+
     if (parsed.error === 'not_food' || parsed.error === 'not_activity') {
-      appendBubble('ai', parsed.message);
-      saveMessage('ai', parsed.message);
-      return;
+      appendBubble('ai', parsed.message); saveMessage('ai', parsed.message);
+      cancelEdit(); sendBtn.disabled = false; return;
     }
- 
+
     if (isActivity) {
-      // Activity response
-      const entry = {
-        id: Date.now(), type: 'activity',
-        name: parsed.desc, cal: parsed.cal,
-        duration: parsed.duration, met: parsed.met,
-        notes: parsed.notes,
-        ts: new Date().toISOString(), date: todayKey()
-      };
-      state.entries.push(entry);
+      const entry = { id: isEditing ? editingEntryId : Date.now(), type: 'activity', name: parsed.desc, cal: parsed.cal, duration: parsed.duration, met: parsed.met, notes: parsed.notes, ts: new Date().toISOString(), date: todayKey() };
+      if (isEditing) { state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e); }
+      else { state.entries.push(entry); }
       saveState();
- 
-      const replyText = `Logged! Burned ~${parsed.cal} kcal${parsed.duration ? ` in ${parsed.duration} min` : ''}.${parsed.notes ? ' ' + parsed.notes : ''}`;
-      const activityMacros = { cal: parsed.cal, duration: parsed.duration || '?' };
-      appendBubble('ai', replyText, null, activityMacros);
+      const replyText = `${isEditing?'Updated':'Logged'}! Burned ~${parsed.cal} kcal${parsed.duration?` in ${parsed.duration} min`:''}.${parsed.notes?' '+parsed.notes:''}`;
+      appendBubble('ai', replyText, null, { cal: parsed.cal, duration: parsed.duration||'?' });
       saveMessage('ai', replyText);
- 
     } else {
-      // Food response
-      const entry = {
-        id: Date.now(), type: 'food',
-        name: parsed.desc,
-        macros: { cal: parsed.cal, p: parsed.pro, c: parsed.carb, f: parsed.fat, fiber: parsed.fiber },
-        ts: new Date().toISOString(), date: todayKey()
-      };
-      state.entries.push(entry);
+      const entry = { id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc, macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat }, ts: new Date().toISOString(), date: todayKey() };
+      if (isEditing) { state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e); }
+      else { state.entries.push(entry); }
       saveState();
- 
-      const replyText = `Logged — ${parsed.desc}.${parsed.notes ? ' ' + parsed.notes : ''}`;
-      const macros = { cal: parsed.cal, p: parsed.pro, c: parsed.carb, f: parsed.fat, fiber: parsed.fiber||0 };
+      const replyText = `${isEditing?'Updated':'Logged'} — ${parsed.desc}.${parsed.notes?' '+parsed.notes:''}`;
+      const macros = { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat };
       appendBubble('ai', replyText, macros);
       saveMessage('ai', replyText, macros);
     }
- 
-  } catch (err) {
+
+    cancelEdit();
+
+  } catch(err) {
     typingRow.remove();
-    const msg = err.message.includes('timeout')
-      ? 'Request timed out — check your connection.'
-      : `Something went wrong: ${err.message}`;
-    appendBubble('ai', msg);
-    saveMessage('ai', msg);
+    const msg = err.message.includes('timeout') ? 'Request timed out — check your connection.' : `Something went wrong: ${err.message}`;
+    appendBubble('ai', msg); saveMessage('ai', msg);
+    cancelEdit();
   }
- 
   sendBtn.disabled = false;
 }
- 
+
 function hideWelcome() {
   if (chatWelcome) chatWelcome.style.display = 'none';
 }
- 
+
 function appendBubble(role, text, macros = null, activityData = null) {
   const row = document.createElement('div');
   row.className = `bubble-row ${role}`;
@@ -849,7 +933,7 @@ function appendBubble(role, text, macros = null, activityData = null) {
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.textContent = text;
- 
+
   if (macros) {
     const card = document.createElement('div');
     card.className = 'macro-card';
@@ -861,7 +945,7 @@ function appendBubble(role, text, macros = null, activityData = null) {
       <div class="macro-item"><div class="macro-val fat">${macros.f}g</div><div class="macro-label">fat</div></div>`;
     bubble.appendChild(card);
   }
- 
+
   if (activityData) {
     const card = document.createElement('div');
     card.className = 'activity-card';
@@ -870,7 +954,7 @@ function appendBubble(role, text, macros = null, activityData = null) {
       <div class="macro-item"><div class="macro-val" style="color:var(--blue)">${activityData.duration} min</div><div class="macro-label">duration</div></div>`;
     bubble.appendChild(card);
   }
- 
+
   const time = document.createElement('div');
   time.className = 'bubble-time';
   time.textContent = formatTime(new Date().toISOString());
@@ -881,7 +965,7 @@ function appendBubble(role, text, macros = null, activityData = null) {
   chatMsgs.appendChild(row);
   chatMsgs.scrollTop = chatMsgs.scrollHeight;
 }
- 
+
 function appendTyping() {
   const row = document.createElement('div');
   row.className = 'bubble-row ai';
@@ -893,45 +977,45 @@ function appendTyping() {
   chatMsgs.scrollTop = chatMsgs.scrollHeight;
   return row;
 }
- 
+
 function saveMessage(role, text, macros = null) {
   state.messages.push({ role, text, macros, ts: new Date().toISOString() });
   saveState();
 }
- 
+
 function restoreChat() {
   const msgs = state.messages || [];
   if (!msgs.length) return;
   hideWelcome();
   msgs.forEach(m => appendBubble(m.role, m.text, m.macros));
 }
- 
+
 // ─── TODAY VIEW ───────────────────────────────────────────────────────────────
 function renderToday() {
   const today = todayKey();
   const entries  = (state.entries || []).filter(e => e.date === today);
   const food     = entries.filter(e => e.type === 'food');
   const activity = entries.filter(e => e.type === 'activity');
- 
+
   const totalCal   = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
   const totalP     = food.reduce((s,e) => s+(e.macros?.p||0), 0);
   const totalFiber = food.reduce((s,e) => s+(e.macros?.fiber||0), 0);
   const totalC     = food.reduce((s,e) => s+(e.macros?.c||0), 0);
   const totalF     = food.reduce((s,e) => s+(e.macros?.f||0), 0);
- 
+
   document.getElementById('today-cal-val').textContent  = totalCal;
   document.getElementById('today-p').textContent        = totalP+'g';
   document.getElementById('today-fiber').textContent    = totalFiber+'g';
   document.getElementById('today-c').textContent        = totalC+'g';
   document.getElementById('today-f').textContent        = totalF+'g';
- 
+
   const circ = 207.3, goal = 2000;
   document.getElementById('cal-ring-fill').style.strokeDashoffset = circ-(circ*Math.min(totalCal/goal,1));
   document.getElementById('today-p-bar').style.width     = Math.min(totalP/150*100,100)+'%';
   document.getElementById('today-fiber-bar').style.width = Math.min(totalFiber/35*100,100)+'%';
   document.getElementById('today-c-bar').style.width     = Math.min(totalC/250*100,100)+'%';
   document.getElementById('today-f-bar').style.width     = Math.min(totalF/65*100,100)+'%';
- 
+
   const actSection = document.getElementById('today-activity-section');
   const actList    = document.getElementById('today-activity-list');
   if (activity.length) {
@@ -949,7 +1033,7 @@ function renderToday() {
   } else {
     actSection.style.display = 'none';
   }
- 
+
   const mealList = document.getElementById('today-meals-list');
   const empty    = document.getElementById('today-empty');
   if (food.length) {
@@ -970,7 +1054,7 @@ function renderToday() {
     mealList.innerHTML = '';
   }
 }
- 
+
 // ─── LOG VIEW ─────────────────────────────────────────────────────────────────
 function setFilter(btn, filter) {
   currentFilter = filter;
@@ -978,13 +1062,17 @@ function setFilter(btn, filter) {
   btn.classList.add('active');
   renderLog();
 }
- 
+
 function renderLog() {
   const entries = (state.entries || []).filter(e =>
     currentFilter === 'all' ? true : currentFilter === 'food' ? e.type === 'food' : e.type === 'activity'
   );
   const logList  = document.getElementById('log-list');
   const logEmpty = document.getElementById('log-empty');
+  const clearBtn = document.getElementById('clear-day-btn');
+  const todayEntries = (state.entries||[]).filter(e => e.date === todayKey());
+  clearBtn.style.display = todayEntries.length ? '' : 'none';
+
   if (!entries.length) { logList.innerHTML = ''; logEmpty.style.display = ''; return; }
   logEmpty.style.display = 'none';
   const groups = {};
@@ -1005,10 +1093,14 @@ function renderLog() {
           <div class="log-entry-cal ${e.type==='activity'?'activity':''}">
             ${e.type==='activity'?'−'+Math.abs(e.cal):(e.macros?.cal||0)} kcal
           </div>
+          <div class="log-entry-actions">
+            <button class="btn-edit" onclick="startEdit(${e.id})">Edit</button>
+            <button class="btn-delete" onclick="deleteEntry(${e.id})">✕</button>
+          </div>
         </div>`).join('')}
     </div>`).join('');
 }
- 
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 const existingProfile = loadProfile();
 if (!existingProfile) {
@@ -1018,7 +1110,7 @@ if (!existingProfile) {
   updateProfileDisplay(existingProfile);
   populateProfileForm(existingProfile);
 }
- 
+
 restoreChat();
 renderLog();
 </script>
