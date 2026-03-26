@@ -4,8 +4,8 @@
   "description": "Dave's personal nutrition tracker",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1D9E75",
+  "background_color": "#0f1410",
+  "theme_color": "#0C447C",
   "orientation": "portrait",
   "icons": [
     {
