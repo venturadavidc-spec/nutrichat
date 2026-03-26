@@ -6,101 +6,991 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NutriChat" />
-  <meta name="theme-color" content="#1D9E75" />
+  <meta name="theme-color" content="#0f1410" />
   <title>NutriChat</title>
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0f1410;
+      --surface:     #161d17;
+      --surface2:    #1c2620;
+      --surface3:    #222e25;
+      --border:      #2a3a2d;
+      --green:       #22c55e;
+      --green-dim:   #16a34a;
+      --green-glow:  rgba(34,197,94,0.12);
+      --green-glow2: rgba(34,197,94,0.06);
+      --blue:        #60a5fa;
+      --blue-glow:   rgba(96,165,250,0.12);
+      --text:        #e8f0ea;
+      --text-dim:    #7a9a7e;
+      --text-muted:  #4a6b4e;
+      --user-bubble: #1a2e1c;
+      --ai-bubble:   #161d17;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --font:        'DM Sans', sans-serif;
+      --mono:        'DM Mono', monospace;
+      --nav-h:       68px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top:    env(safe-area-inset-top, 0px);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+    }
+    #app {
+      display: flex; flex-direction: column;
+      height: 100dvh; max-width: 480px; margin: 0 auto; position: relative;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+      padding: calc(var(--safe-top) + 12px) 20px 12px;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      position: relative; z-index: 10;
+    }
+    .header-logo { display: flex; align-items: center; gap: 8px; }
+    .logo-icon {
+      width: 30px; height: 30px; background: var(--green); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 16px; height: 16px; }
+    .logo-text { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; color: var(--text); }
+    .logo-text span { color: var(--green); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-date { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+    .header-profile-btn {
+      width: 30px; height: 30px; border-radius: 50%; background: var(--surface2);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .header-profile-btn:active { border-color: var(--green); }
+    .header-profile-btn svg { width: 16px; height: 16px; color: var(--text-dim); }
+    .header-profile-btn.has-profile { border-color: var(--green-dim); }
+    .header-profile-btn.has-profile svg { color: var(--green); }
+
+    /* ─── VIEWS ─── */
+    .view { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; flex-direction: column; }
+    .view.active { display: flex; }
+
+    /* ─── CHAT VIEW ─── */
+    #view-chat { padding-bottom: 0; }
+    #chat-messages {
+      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .chat-welcome {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; padding: 48px 24px; text-align: center; flex: 1;
+    }
+    .welcome-icon {
+      width: 64px; height: 64px; background: var(--green-glow); border: 1px solid var(--border);
+      border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    }
+    .welcome-icon svg { width: 28px; height: 28px; color: var(--green); }
+    .welcome-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+    .welcome-sub { font-size: 14px; color: var(--text-dim); line-height: 1.5; max-width: 260px; }
+    .welcome-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
+    .chip {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+      padding: 7px 14px; font-size: 13px; color: var(--text-dim); cursor: pointer; transition: all 0.15s;
+    }
+    .chip:active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
+
+    .bubble-row { display: flex; gap: 8px; animation: bubbleIn 0.2s ease; }
+    @keyframes bubbleIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .bubble-row.user { flex-direction: row-reverse; }
+    .bubble-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-top: 2px;
+    }
+    .bubble-row.ai .bubble-avatar { background: var(--green); color: #0f1410; }
+    .bubble-row.user .bubble-avatar { background: var(--surface3); color: var(--text-dim); }
+    .bubble { max-width: 78%; padding: 10px 14px; border-radius: var(--radius); font-size: 15px; line-height: 1.45; }
+    .bubble-row.ai .bubble { background: var(--ai-bubble); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .bubble-row.user .bubble { background: var(--user-bubble); border: 1px solid rgba(34,197,94,0.2); border-bottom-right-radius: 4px; }
+    .bubble-time { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 4px; padding: 0 4px; }
+    .bubble-row.user .bubble-time { text-align: right; }
+
+    .macro-card {
+      margin-top: 10px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px;
+    }
+    .macro-item { text-align: center; }
+    .macro-val { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--green); }
+    .macro-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .activity-card {
+      margin-top: 10px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    }
+    .activity-card .macro-val { color: var(--blue); }
+
+    #chat-input-area {
+      flex-shrink: 0; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 10px 12px; display: flex; align-items: flex-end; gap: 10px;
+    }
+    #chat-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 22px;
+      padding: 10px 16px; font-family: var(--font); font-size: 15px; color: var(--text);
+      resize: none; outline: none; max-height: 120px; min-height: 42px; line-height: 1.4;
+      -webkit-appearance: none; transition: border-color 0.15s;
+    }
+    #chat-input:focus { border-color: var(--green-dim); }
+    #chat-input::placeholder { color: var(--text-muted); }
+    #send-btn {
+      width: 42px; height: 42px; border-radius: 50%; background: var(--green); border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+    #send-btn:active { background: var(--green-dim); transform: scale(0.94); }
+    #send-btn svg { width: 18px; height: 18px; color: #0f1410; }
+    #send-btn:disabled { background: var(--surface3); }
+    #send-btn:disabled svg { color: var(--text-muted); }
+
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
+    .typing-indicator span {
+      width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+    /* ─── TODAY VIEW ─── */
+    #view-today { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
+    .section-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .today-summary {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; align-items: center; gap: 20px;
+    }
+    .cal-ring { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+    .cal-ring svg { transform: rotate(-90deg); }
+    .cal-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .cal-ring-val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--green); line-height: 1; }
+    .cal-ring-unit { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .today-macros-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .today-macro { display: flex; flex-direction: column; gap: 4px; }
+    .today-macro-bar { height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+    .today-macro-fill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.4s ease; }
+    .today-macro-val { font-family: var(--mono); font-size: 14px; color: var(--text); font-weight: 500; }
+    .today-macro-lbl { font-size: 11px; color: var(--text-muted); }
+
+    .activity-strip {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+    }
+    .activity-icon {
+      width: 36px; height: 36px; background: var(--blue-glow); border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .activity-icon svg { width: 18px; height: 18px; color: var(--blue); }
+    .activity-label { font-size: 14px; color: var(--text); }
+    .activity-cal { font-family: var(--mono); font-size: 13px; color: var(--blue); margin-left: auto; }
+
+    .meal-entry {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .meal-entry-left { flex: 1; }
+    .meal-entry-name { font-size: 15px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+    .meal-entry-macros { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+    .meal-entry-time { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+    .meal-entry-cal { font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--green); text-align: right; }
+    .meal-entry-cal-unit { font-size: 10px; color: var(--text-muted); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+    .empty-state-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+
+    /* ─── LOG VIEW ─── */
+    #view-log { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 0; }
+    .log-filter-row {
+      display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;
+      padding-bottom: 2px; -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .log-filter-row::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text-dim); font-size: 13px;
+      font-family: var(--font); cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .filter-btn.active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
+    .log-day-group { margin-bottom: 20px; }
+    .log-day-header {
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .log-day-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .log-entry { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .log-entry:last-child { border-bottom: none; }
+    .log-entry-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; opacity: 0.6; }
+    .log-entry-dot.activity { background: var(--blue); }
+    .log-entry-body { flex: 1; }
+    .log-entry-name { font-size: 14px; color: var(--text); }
+    .log-entry-detail { font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .log-entry-cal { font-family: var(--mono); font-size: 14px; color: var(--green); flex-shrink: 0; }
+    .log-entry-cal.activity { color: var(--blue); }
+
+    /* ─── PROFILE VIEW ─── */
+    #view-profile { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
+    .profile-header {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%; background: var(--green-glow);
+      border: 2px solid var(--green-dim); display: flex; align-items: center; justify-content: center;
+    }
+    .profile-avatar svg { width: 30px; height: 30px; color: var(--green); }
+    .profile-name { font-size: 20px; font-weight: 600; color: var(--text); }
+    .profile-subtitle { font-size: 13px; color: var(--text-dim); }
+
+    .profile-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .profile-card-title {
+      padding: 12px 16px; font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .profile-field {
+      padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .profile-field:last-child { border-bottom: none; }
+    .profile-field-label { font-size: 14px; color: var(--text-dim); }
+    .profile-field-value { font-family: var(--mono); font-size: 14px; color: var(--text); font-weight: 500; }
+
+    .profile-form { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+    .form-input {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-family: var(--font); font-size: 15px; color: var(--text);
+      outline: none; transition: border-color 0.15s; -webkit-appearance: none;
+    }
+    .form-input:focus { border-color: var(--green-dim); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-select {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-family: var(--font); font-size: 15px; color: var(--text);
+      outline: none; -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a6b4e' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    .form-select:focus { border-color: var(--green-dim); }
+    .btn-save {
+      background: var(--green); color: #0f1410; border: none; border-radius: var(--radius-sm);
+      padding: 13px; font-family: var(--font); font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; margin-top: 4px;
+    }
+    .btn-save:active { background: var(--green-dim); }
+    .profile-saved-banner {
+      background: var(--green-glow); border: 1px solid var(--green-dim); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-size: 13px; color: var(--green); text-align: center;
+      display: none;
+    }
+
+    /* ─── PROFILE MODAL (first launch) ─── */
+    .modal-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.75);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 100; padding-bottom: var(--safe-bottom);
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-sheet {
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border); border-bottom: none;
+      width: 100%; max-width: 480px; padding: 24px 20px;
+      display: flex; flex-direction: column; gap: 16px;
+      max-height: 85dvh; overflow-y: auto;
+    }
+    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto -8px; }
+    .modal-title { font-size: 20px; font-weight: 600; color: var(--text); text-align: center; }
+    .modal-sub { font-size: 14px; color: var(--text-dim); text-align: center; line-height: 1.5; margin-top: -8px; }
+
+    /* ─── BOTTOM NAV ─── */
+    #bottom-nav {
+      flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-bottom);
+    }
+    .nav-tab {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; padding: 10px 0; cursor: pointer; position: relative; transition: opacity 0.15s;
+    }
+    .nav-tab svg { width: 22px; height: 22px; color: var(--text-muted); transition: color 0.15s; }
+    .nav-tab-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.3px; transition: color 0.15s; font-weight: 500; }
+    .nav-tab.active svg { color: var(--green); }
+    .nav-tab.active .nav-tab-label { color: var(--green); }
+    .nav-tab-pip { position: absolute; top: 6px; width: 4px; height: 4px; background: var(--green); border-radius: 50%; display: none; }
+    .nav-tab.active .nav-tab-pip { display: block; }
+    ::-webkit-scrollbar { width: 0; }
+  </style>
 </head>
 <body>
+<div id="app">
 
-  <div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="header-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0f1410" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/>
+          <circle cx="19" cy="5" r="3" fill="#0f1410" stroke="none"/>
+        </svg>
+      </div>
+      <div class="logo-text">Nutri<span>Chat</span></div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="header-date"></div>
+      <div class="header-profile-btn" id="header-profile-btn" onclick="switchView('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+    </div>
+  </header>
 
-    <!-- Header -->
-    <header>
-      <div id="date-display"></div>
-      <div class="header-right">
-        <div class="server-status">
-          <div class="status-dot" id="status-dot"></div>
-          <span id="status-text">Connecting...</span>
+  <!-- CHAT VIEW -->
+  <div class="view active" id="view-chat">
+    <div id="chat-messages">
+      <div class="chat-welcome" id="chat-welcome">
+        <div class="welcome-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="welcome-title" id="welcome-title">Hey Dave 👋</div>
+        <div class="welcome-sub">Tell me what you ate or log an activity. I'll handle the math.</div>
+        <div class="welcome-chips">
+          <div class="chip" onclick="fillInput('Had 3 scrambled eggs and toast for breakfast')">🥚 Eggs & toast</div>
+          <div class="chip" onclick="fillInput('Just got back from a 30 min walk')">🚶 Morning walk</div>
+          <div class="chip" onclick="fillInput('Lunch was a turkey sandwich and chips')">🥪 Turkey sandwich</div>
+          <div class="chip" onclick="fillInput('What did I eat today?')">📊 Today\'s summary</div>
         </div>
       </div>
-    </header>
-
-<!-- Macro summary cards -->
-<section class="macro-section">
-  <div class="macro-grid">
-    <div class="macro-card">
-      <div class="macro-label">Calories</div>
-      <div class="macro-value"><span id="tot-cal">0</span><span class="macro-unit">kcal</span></div>
-      <div class="progress-wrap"><div class="progress-bar cal-bar" id="pb-cal"></div></div>
     </div>
-    <div class="macro-card">
-      <div class="macro-label">Protein</div>
-      <div class="macro-value"><span id="tot-pro">0</span><span class="macro-unit">g</span></div>
-      <div class="progress-wrap"><div class="progress-bar pro-bar" id="pb-pro"></div></div>
-    </div>
-    <div class="macro-card">
-      <div class="macro-label">Fiber</div>
-      <div class="macro-value"><span id="tot-fiber">0</span><span class="macro-unit">g</span></div>
-      <div class="progress-wrap"><div class="progress-bar fiber-bar" id="pb-fiber"></div></div>
-    </div>
-    <div class="macro-card">
-      <div class="macro-label">Carbs</div>
-      <div class="macro-value"><span id="tot-carb">0</span><span class="macro-unit">g</span></div>
-      <div class="progress-wrap"><div class="progress-bar carb-bar" id="pb-carb"></div></div>
-    </div>
-    <div class="macro-card">
-      <div class="macro-label">Fat</div>
-      <div class="macro-value"><span id="tot-fat">0</span><span class="macro-unit">g</span></div>
-      <div class="progress-wrap"><div class="progress-bar fat-bar" id="pb-fat"></div></div>
+    <div id="chat-input-area">
+      <textarea id="chat-input" placeholder="Log food or activity…" rows="1"
+        autocomplete="off" autocorrect="on" autocapitalize="sentences"></textarea>
+      <button id="send-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
     </div>
   </div>
-</section>
 
-    <!-- Meal log -->
-    <section class="log-section">
-      <div class="section-header">
-        <span class="section-label">Today's log</span>
-        <button class="clear-btn" onclick="resetDay()">Clear</button>
+  <!-- TODAY VIEW -->
+  <div class="view" id="view-today">
+    <div class="section-label">Daily overview</div>
+    <div class="today-summary">
+      <div class="cal-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="33" fill="none" stroke="#222e25" stroke-width="7"/>
+          <circle id="cal-ring-fill" cx="40" cy="40" r="33" fill="none"
+            stroke="#22c55e" stroke-width="7" stroke-dasharray="207.3" stroke-dashoffset="207.3"
+            stroke-linecap="round" style="transition: stroke-dashoffset 0.6s ease"/>
+        </svg>
+        <div class="cal-ring-text">
+          <div class="cal-ring-val" id="today-cal-val">0</div>
+          <div class="cal-ring-unit">kcal</div>
+        </div>
       </div>
-      <div id="log-list">
-        <div class="empty-log">Nothing logged yet.</div>
+      <div class="today-macros-grid">
+        <div class="today-macro">
+          <div class="today-macro-val" id="today-p">0g</div>
+          <div class="today-macro-lbl">Protein</div>
+          <div class="today-macro-bar"><div class="today-macro-fill" id="today-p-bar" style="width:0%"></div></div>
+        </div>
+        <div class="today-macro">
+          <div class="today-macro-val" id="today-c">0g</div>
+          <div class="today-macro-lbl">Carbs</div>
+          <div class="today-macro-bar"><div class="today-macro-fill" id="today-c-bar" style="width:0%"></div></div>
+        </div>
+        <div class="today-macro">
+          <div class="today-macro-val" id="today-f">0g</div>
+          <div class="today-macro-lbl">Fat</div>
+          <div class="today-macro-bar"><div class="today-macro-fill" id="today-f-bar" style="width:0%"></div></div>
+        </div>
       </div>
-    </section>
+    </div>
+    <div id="today-activity-section" style="margin-top:16px; display:none;">
+      <div class="section-label">Activity</div>
+      <div id="today-activity-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="section-label">Meals & Snacks</div>
+      <div id="today-meals-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <div class="empty-state" id="today-empty" style="display:none;">
+        <div class="empty-state-icon">🥗</div>
+        No meals logged yet today.<br>Head to Chat to get started.
+      </div>
+    </div>
+  </div>
 
-    <!-- Chat input -->
-    <section class="chat-section">
-      <div class="section-label">Log a meal</div>
-      <div class="chat-area">
-        <div class="chat-messages" id="chat-messages">
-          <div class="msg ai">
-            <div class="ai-bubble">Hey Dave — what did you eat? Describe it naturally and I'll handle the rest.</div>
+  <!-- LOG VIEW -->
+  <div class="view" id="view-log">
+    <div class="log-filter-row">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+      <button class="filter-btn" data-filter="food" onclick="setFilter(this,'food')">Food</button>
+      <button class="filter-btn" data-filter="activity" onclick="setFilter(this,'activity')">Activity</button>
+    </div>
+    <div id="log-list"></div>
+    <div class="empty-state" id="log-empty" style="display:none;">
+      <div class="empty-state-icon">📋</div>
+      Nothing logged yet.<br>Use Chat to start tracking.
+    </div>
+  </div>
+
+  <!-- PROFILE VIEW -->
+  <div class="view" id="view-profile">
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="profile-name" id="profile-display-name">Your Profile</div>
+      <div class="profile-subtitle" id="profile-display-sub">Set up your profile for accurate tracking</div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-card-title">Personal Info</div>
+      <div class="profile-form">
+        <div class="profile-saved-banner" id="profile-saved-banner">✓ Profile saved</div>
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" id="prof-name" type="text" placeholder="Dave" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight (lbs)</label>
+          <input class="form-input" id="prof-weight" type="number" placeholder="185" inputmode="decimal"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Height</label>
+          <div class="form-row">
+            <input class="form-input" id="prof-height-ft" type="number" placeholder="5 ft" inputmode="decimal"/>
+            <input class="form-input" id="prof-height-in" type="number" placeholder="10 in" inputmode="decimal"/>
           </div>
         </div>
-        <div class="chat-input-row">
-          <input
-            id="chat-input"
-            type="text"
-            placeholder="e.g. two eggs and toast with butter"
-            autocomplete="off"
-            autocorrect="off"
-          />
-          <button id="send-btn" onclick="sendMessage()">Log</button>
+        <div class="form-group">
+          <label class="form-label">Activity Level</label>
+          <select class="form-select form-input" id="prof-activity">
+            <option value="Sedentary">Sedentary (desk job, little exercise)</option>
+            <option value="Slightly Active">Slightly Active (light exercise 1–2x/week)</option>
+            <option value="Moderately Active" selected>Moderately Active (exercise 3–4x/week)</option>
+            <option value="Active">Active (hard exercise 5+x/week)</option>
+          </select>
         </div>
+        <button class="btn-save" onclick="saveProfile()">Save Profile</button>
       </div>
-    </section>
-
+    </div>
   </div>
 
-  <script src="/app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('[NutriChat] Service worker registered'))
-        .catch(err => console.log('[NutriChat] SW error:', err));
-    }
-  </script>
+  <!-- FIRST LAUNCH MODAL -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Welcome to NutriChat 👋</div>
+      <div class="modal-sub">Set up your profile for accurate calorie burn estimates and personalized tracking.</div>
+      <div class="profile-form" style="padding:0;">
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" id="modal-name" type="text" placeholder="Dave" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight (lbs)</label>
+          <input class="form-input" id="modal-weight" type="number" placeholder="185" inputmode="decimal"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Height</label>
+          <div class="form-row">
+            <input class="form-input" id="modal-height-ft" type="number" placeholder="5 ft" inputmode="decimal"/>
+            <input class="form-input" id="modal-height-in" type="number" placeholder="10 in" inputmode="decimal"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Activity Level</label>
+          <select class="form-select form-input" id="modal-activity">
+            <option value="Sedentary">Sedentary</option>
+            <option value="Slightly Active">Slightly Active</option>
+            <option value="Moderately Active" selected>Moderately Active</option>
+            <option value="Active">Active</option>
+          </select>
+        </div>
+        <button class="btn-save" onclick="saveProfileFromModal()">Let's go</button>
+        <div style="text-align:center; padding-top:4px;">
+          <span onclick="dismissModal()" style="font-size:13px; color:var(--text-muted); cursor:pointer;">Skip for now</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <div class="nav-tab active" data-view="chat" onclick="switchView('chat')">
+      <div class="nav-tab-pip"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span class="nav-tab-label">Chat</span>
+    </div>
+    <div class="nav-tab" data-view="today" onclick="switchView('today')">
+      <div class="nav-tab-pip"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span class="nav-tab-label">Today</span>
+    </div>
+    <div class="nav-tab" data-view="log" onclick="switchView('log')">
+      <div class="nav-tab-pip"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      <span class="nav-tab-label">Log</span>
+    </div>
+    <div class="nav-tab" data-view="profile" onclick="switchView('profile')">
+      <div class="nav-tab-pip"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="nav-tab-label">Profile</span>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+// ─── STORAGE KEYS ─────────────────────────────────────────────────────────────
+const STORAGE_KEY   = 'nutrichat_v1';
+const PROFILE_KEY   = 'nutrichat_profile';
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+function loadProfile() {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; }
+  catch { return null; }
+}
+function saveProfileData(p) {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+}
+function getProfile() { return loadProfile(); }
+
+function populateProfileForm(p) {
+  if (!p) return;
+  document.getElementById('prof-name').value       = p.name || '';
+  document.getElementById('prof-weight').value     = p.weightLbs || '';
+  document.getElementById('prof-height-ft').value  = p.heightFt || '';
+  document.getElementById('prof-height-in').value  = p.heightIn || '';
+  document.getElementById('prof-activity').value   = p.activityLevel || 'Moderately Active';
+}
+
+function updateProfileDisplay(p) {
+  if (!p) return;
+  const nameEl = document.getElementById('profile-display-name');
+  const subEl  = document.getElementById('profile-display-sub');
+  const titleEl = document.getElementById('welcome-title');
+  if (p.name) {
+    nameEl.textContent = p.name;
+    titleEl.textContent = `Hey ${p.name} 👋`;
+  }
+  const parts = [];
+  if (p.weightLbs) parts.push(`${p.weightLbs} lbs`);
+  if (p.heightFt)  parts.push(`${p.heightFt}'${p.heightIn || 0}"`);
+  if (p.activityLevel) parts.push(p.activityLevel);
+  subEl.textContent = parts.length ? parts.join(' · ') : 'Set up your profile for accurate tracking';
+  const btn = document.getElementById('header-profile-btn');
+  btn.classList.toggle('has-profile', !!p.name || !!p.weightLbs);
+}
+
+function saveProfile() {
+  const p = {
+    name:          document.getElementById('prof-name').value.trim(),
+    weightLbs:     parseFloat(document.getElementById('prof-weight').value) || null,
+    heightFt:      parseInt(document.getElementById('prof-height-ft').value) || null,
+    heightIn:      parseInt(document.getElementById('prof-height-in').value) || 0,
+    activityLevel: document.getElementById('prof-activity').value,
+  };
+  saveProfileData(p);
+  updateProfileDisplay(p);
+  const banner = document.getElementById('profile-saved-banner');
+  banner.style.display = 'block';
+  setTimeout(() => { banner.style.display = 'none'; }, 2500);
+}
+
+function saveProfileFromModal() {
+  const p = {
+    name:          document.getElementById('modal-name').value.trim(),
+    weightLbs:     parseFloat(document.getElementById('modal-weight').value) || null,
+    heightFt:      parseInt(document.getElementById('modal-height-ft').value) || null,
+    heightIn:      parseInt(document.getElementById('modal-height-in').value) || 0,
+    activityLevel: document.getElementById('modal-activity').value,
+  };
+  saveProfileData(p);
+  updateProfileDisplay(p);
+  populateProfileForm(p);
+  dismissModal();
+}
+
+function dismissModal() {
+  document.getElementById('profile-modal').classList.add('hidden');
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { entries: [], messages: [] }; }
+  catch { return { entries: [], messages: [] }; }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+let currentFilter = 'all';
+
+// ─── DATE HELPERS ─────────────────────────────────────────────────────────────
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function formatTime(iso) {
+  const d = new Date(iso);
+  let h = d.getHours(), m = d.getMinutes();
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m.toString().padStart(2,'0')} ${ap}`;
+}
+function formatDateLabel(key) {
+  const today = todayKey();
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if (key === today) return 'Today';
+  if (key === yesterday) return 'Yesterday';
+  return new Date(key+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+function updateHeaderDate() {
+  document.getElementById('header-date').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+updateHeaderDate();
+
+// ─── VIEW SWITCHING ───────────────────────────────────────────────────────────
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelector(`.nav-tab[data-view="${name}"]`).classList.add('active');
+  if (name === 'today')   renderToday();
+  if (name === 'log')     renderLog();
+  if (name === 'profile') populateProfileForm(getProfile());
+}
+
+// ─── CHAT ─────────────────────────────────────────────────────────────────────
+const chatInput   = document.getElementById('chat-input');
+const sendBtn     = document.getElementById('send-btn');
+const chatMsgs    = document.getElementById('chat-messages');
+const chatWelcome = document.getElementById('chat-welcome');
+
+chatInput.addEventListener('input', () => {
+  sendBtn.disabled = !chatInput.value.trim();
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight,120)+'px';
+});
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+sendBtn.addEventListener('click', sendMessage);
+
+function fillInput(text) {
+  chatInput.value = text;
+  chatInput.dispatchEvent(new Event('input'));
+  chatInput.focus();
+}
+
+// Detect if input looks like activity
+const ACTIVITY_KWS = ['walk','run','ran','jog','workout','bike','rode','gym','yoga','swim','lift','yardwork','mow','hike','hiked','elliptical','treadmill','cycling','played','tennis','basketball','golf','soccer','exercise'];
+function looksLikeActivity(text) {
+  const lower = text.toLowerCase();
+  return ACTIVITY_KWS.some(k => lower.includes(k));
+}
+
+async function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  hideWelcome();
+  appendBubble('user', text);
+  saveMessage('user', text);
+
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  const typingRow = appendTyping();
+  const profile = getProfile();
+  const isActivity = looksLikeActivity(text);
+
+  try {
+    const endpoint = isActivity ? '/analyze-activity' : '/analyze';
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, profile }),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Server error ${res.status}`);
+    }
+
+    const parsed = await res.json();
+    typingRow.remove();
+
+    if (parsed.error === 'not_food' || parsed.error === 'not_activity') {
+      appendBubble('ai', parsed.message);
+      saveMessage('ai', parsed.message);
+      return;
+    }
+
+    if (isActivity) {
+      // Activity response
+      const entry = {
+        id: Date.now(), type: 'activity',
+        name: parsed.desc, cal: parsed.cal,
+        duration: parsed.duration, met: parsed.met,
+        notes: parsed.notes,
+        ts: new Date().toISOString(), date: todayKey()
+      };
+      state.entries.push(entry);
+      saveState();
+
+      const replyText = `Logged! Burned ~${parsed.cal} kcal${parsed.duration ? ` in ${parsed.duration} min` : ''}.${parsed.notes ? ' ' + parsed.notes : ''}`;
+      const activityMacros = { cal: parsed.cal, duration: parsed.duration || '?' };
+      appendBubble('ai', replyText, null, activityMacros);
+      saveMessage('ai', replyText);
+
+    } else {
+      // Food response
+      const entry = {
+        id: Date.now(), type: 'food',
+        name: parsed.desc,
+        macros: { cal: parsed.cal, p: parsed.pro, c: parsed.carb, f: parsed.fat, fiber: parsed.fiber },
+        ts: new Date().toISOString(), date: todayKey()
+      };
+      state.entries.push(entry);
+      saveState();
+
+      const replyText = `Logged — ${parsed.desc}.${parsed.notes ? ' ' + parsed.notes : ''}`;
+      const macros = { cal: parsed.cal, p: parsed.pro, c: parsed.carb, f: parsed.fat };
+      appendBubble('ai', replyText, macros);
+      saveMessage('ai', replyText, macros);
+    }
+
+  } catch (err) {
+    typingRow.remove();
+    const msg = err.message.includes('timeout')
+      ? 'Request timed out — check your connection.'
+      : `Something went wrong: ${err.message}`;
+    appendBubble('ai', msg);
+    saveMessage('ai', msg);
+  }
+
+  sendBtn.disabled = false;
+}
+
+function hideWelcome() {
+  if (chatWelcome) chatWelcome.style.display = 'none';
+}
+
+function appendBubble(role, text, macros = null, activityData = null) {
+  const row = document.createElement('div');
+  row.className = `bubble-row ${role}`;
+  const avatar = document.createElement('div');
+  avatar.className = 'bubble-avatar';
+  const profile = getProfile();
+  avatar.textContent = role === 'ai' ? 'N' : (profile?.name?.[0]?.toUpperCase() || 'D');
+  const wrap = document.createElement('div');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  if (macros) {
+    const card = document.createElement('div');
+    card.className = 'macro-card';
+    card.innerHTML = `
+      <div class="macro-item"><div class="macro-val">${macros.cal}</div><div class="macro-label">kcal</div></div>
+      <div class="macro-item"><div class="macro-val">${macros.p}g</div><div class="macro-label">protein</div></div>
+      <div class="macro-item"><div class="macro-val">${macros.c}g</div><div class="macro-label">carbs</div></div>
+      <div class="macro-item"><div class="macro-val">${macros.f}g</div><div class="macro-label">fat</div></div>`;
+    bubble.appendChild(card);
+  }
+
+  if (activityData) {
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    card.innerHTML = `
+      <div class="macro-item"><div class="macro-val" style="color:var(--blue)">${activityData.cal}</div><div class="macro-label">kcal burned</div></div>
+      <div class="macro-item"><div class="macro-val" style="color:var(--blue)">${activityData.duration} min</div><div class="macro-label">duration</div></div>`;
+    bubble.appendChild(card);
+  }
+
+  const time = document.createElement('div');
+  time.className = 'bubble-time';
+  time.textContent = formatTime(new Date().toISOString());
+  wrap.appendChild(bubble);
+  wrap.appendChild(time);
+  row.appendChild(avatar);
+  row.appendChild(wrap);
+  chatMsgs.appendChild(row);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function appendTyping() {
+  const row = document.createElement('div');
+  row.className = 'bubble-row ai';
+  row.innerHTML = `<div class="bubble-avatar">N</div>
+    <div class="bubble" style="padding:12px 16px;">
+      <div class="typing-indicator"><span></span><span></span><span></span></div>
+    </div>`;
+  chatMsgs.appendChild(row);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  return row;
+}
+
+function saveMessage(role, text, macros = null) {
+  state.messages.push({ role, text, macros, ts: new Date().toISOString() });
+  saveState();
+}
+
+function restoreChat() {
+  const msgs = state.messages || [];
+  if (!msgs.length) return;
+  hideWelcome();
+  msgs.forEach(m => appendBubble(m.role, m.text, m.macros));
+}
+
+// ─── TODAY VIEW ───────────────────────────────────────────────────────────────
+function renderToday() {
+  const today = todayKey();
+  const entries  = (state.entries || []).filter(e => e.date === today);
+  const food     = entries.filter(e => e.type === 'food');
+  const activity = entries.filter(e => e.type === 'activity');
+
+  const totalCal = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
+  const totalP   = food.reduce((s,e) => s+(e.macros?.p||0), 0);
+  const totalC   = food.reduce((s,e) => s+(e.macros?.c||0), 0);
+  const totalF   = food.reduce((s,e) => s+(e.macros?.f||0), 0);
+
+  document.getElementById('today-cal-val').textContent = totalCal;
+  document.getElementById('today-p').textContent = totalP+'g';
+  document.getElementById('today-c').textContent = totalC+'g';
+  document.getElementById('today-f').textContent = totalF+'g';
+
+  const goal = 2000;
+  const circ = 207.3;
+  document.getElementById('cal-ring-fill').style.strokeDashoffset = circ-(circ*Math.min(totalCal/goal,1));
+  document.getElementById('today-p-bar').style.width = Math.min(totalP/150*100,100)+'%';
+  document.getElementById('today-c-bar').style.width = Math.min(totalC/250*100,100)+'%';
+  document.getElementById('today-f-bar').style.width = Math.min(totalF/65*100,100)+'%';
+
+  const actSection = document.getElementById('today-activity-section');
+  const actList    = document.getElementById('today-activity-list');
+  if (activity.length) {
+    actSection.style.display = '';
+    actList.innerHTML = activity.map(e => `
+      <div class="activity-strip">
+        <div class="activity-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2"/><path d="M12 22V12m0 0l-3-4m3 4l3-4"/>
+          </svg>
+        </div>
+        <div class="activity-label">${e.name}</div>
+        <div class="activity-cal">−${Math.abs(e.cal)} kcal</div>
+      </div>`).join('');
+  } else {
+    actSection.style.display = 'none';
+  }
+
+  const mealList = document.getElementById('today-meals-list');
+  const empty    = document.getElementById('today-empty');
+  if (food.length) {
+    empty.style.display = 'none';
+    mealList.innerHTML = food.map(e => `
+      <div class="meal-entry">
+        <div class="meal-entry-left">
+          <div class="meal-entry-name">${e.name}</div>
+          <div class="meal-entry-macros">P ${e.macros?.p||0}g · C ${e.macros?.c||0}g · F ${e.macros?.f||0}g</div>
+        </div>
+        <div>
+          <div class="meal-entry-cal">${e.macros?.cal||0}<div class="meal-entry-cal-unit">kcal</div></div>
+          <div class="meal-entry-time">${formatTime(e.ts)}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    empty.style.display = '';
+    mealList.innerHTML = '';
+  }
+}
+
+// ─── LOG VIEW ─────────────────────────────────────────────────────────────────
+function setFilter(btn, filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+
+function renderLog() {
+  const entries = (state.entries || []).filter(e =>
+    currentFilter === 'all' ? true : currentFilter === 'food' ? e.type === 'food' : e.type === 'activity'
+  );
+  const logList  = document.getElementById('log-list');
+  const logEmpty = document.getElementById('log-empty');
+  if (!entries.length) { logList.innerHTML = ''; logEmpty.style.display = ''; return; }
+  logEmpty.style.display = 'none';
+  const groups = {};
+  entries.forEach(e => { if (!groups[e.date]) groups[e.date] = []; groups[e.date].push(e); });
+  const sorted = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+  logList.innerHTML = sorted.map(date => `
+    <div class="log-day-group">
+      <div class="log-day-header">${formatDateLabel(date)}</div>
+      ${groups[date].map(e => `
+        <div class="log-entry">
+          <div class="log-entry-dot ${e.type==='activity'?'activity':''}"></div>
+          <div class="log-entry-body">
+            <div class="log-entry-name">${e.name}</div>
+            <div class="log-entry-detail">${e.type==='food'
+              ? `P ${e.macros?.p||0}g · C ${e.macros?.c||0}g · F ${e.macros?.f||0}g`
+              : `${e.duration||'?'} min · MET ${e.met||'?'}`}</div>
+          </div>
+          <div class="log-entry-cal ${e.type==='activity'?'activity':''}">
+            ${e.type==='activity'?'−'+Math.abs(e.cal):(e.macros?.cal||0)} kcal
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+const existingProfile = loadProfile();
+if (!existingProfile) {
+  document.getElementById('profile-modal').classList.remove('hidden');
+} else {
+  document.getElementById('profile-modal').classList.add('hidden');
+  updateProfileDisplay(existingProfile);
+  populateProfileForm(existingProfile);
+}
+
+restoreChat();
+renderLog();
+</script>
 </body>
 </html>
