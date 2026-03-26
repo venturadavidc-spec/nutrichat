@@ -832,16 +832,19 @@ function handleSummaryRequest() {
     return;
   }
 
-  const totCal   = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
-  const totP     = food.reduce((s,e) => s+(e.macros?.p||0), 0);
-  const totFiber = food.reduce((s,e) => s+(e.macros?.fiber||0), 0);
-  const totC     = food.reduce((s,e) => s+(e.macros?.c||0), 0);
-  const totF     = food.reduce((s,e) => s+(e.macros?.f||0), 0);
+  const totCal    = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
+  const totP      = food.reduce((s,e) => s+(e.macros?.p||0), 0);
+  const totFiber  = food.reduce((s,e) => s+(e.macros?.fiber||0), 0);
+  const totC      = food.reduce((s,e) => s+(e.macros?.c||0), 0);
+  const totF      = food.reduce((s,e) => s+(e.macros?.f||0), 0);
   const totBurned = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
 
+  const foodLines = food.map(e => `• ${e.name} (${e.macros?.cal||0} kcal)`).join('\n');
+  const actLines  = activity.length ? '\n\nActivity:\n' + activity.map(e => `• ${e.name} — ${Math.abs(e.cal)} kcal burned`).join('\n') : '';
+
   let reply = `Here's your day so far — ${food.length} meal${food.length!==1?'s':''} logged`;
-  if (totBurned) reply += `, ${totBurned} kcal burned from activity`;
-  reply += '.';
+  if (totBurned) reply += `, ${totBurned} kcal burned`;
+  reply += `:\n\n${foodLines}${actLines}`;
 
   const macros = { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF };
   appendBubble('ai', reply, macros);
