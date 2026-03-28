@@ -205,6 +205,17 @@
     .today-macro-val.fat   { color: var(--coral); }
     .today-macro-lbl { font-size: 11px; color: var(--text-muted); }
 
+    /* Net calories strip */
+    .net-cal-strip {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .net-cal-label { font-size: 13px; color: var(--text-dim); }
+    .net-cal-value { font-family: var(--mono); font-size: 18px; font-weight: 500; }
+    .net-cal-value.under { color: var(--green); }
+    .net-cal-value.over  { color: var(--coral); }
+    .net-cal-detail { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; text-align: right; }
+
     .activity-strip {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 14px 16px; display: flex; align-items: center; gap: 14px;
@@ -274,6 +285,15 @@
     .profile-name { font-size: 20px; font-weight: 600; color: var(--text); }
     .profile-subtitle { font-size: 13px; color: var(--text-dim); }
 
+    /* Goals card in profile */
+    .goals-summary {
+      background: var(--surface2); border-radius: var(--radius-sm);
+      padding: 12px; display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-top: 4px;
+    }
+    .goals-summary-item { text-align: center; }
+    .goals-summary-val { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+    .goals-summary-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
     .profile-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
     }
@@ -293,6 +313,7 @@
     .profile-form { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+    .form-hint  { font-size: 11px; color: var(--text-muted); margin-top: -2px; }
     .form-input {
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
       padding: 10px 14px; font-family: var(--font); font-size: 15px; color: var(--text);
@@ -314,11 +335,20 @@
       cursor: pointer; transition: background 0.15s; margin-top: 4px;
     }
     .btn-save:active { background: var(--green-dim); }
+    .btn-secondary {
+      background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px; font-family: var(--font); font-size: 14px;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .btn-secondary:active { border-color: var(--green-dim); color: var(--green); }
     .profile-saved-banner {
       background: var(--green-glow); border: 1px solid var(--green-dim); border-radius: var(--radius-sm);
       padding: 10px 14px; font-size: 13px; color: var(--green); text-align: center;
       display: none;
     }
+    /* Goal override section toggle */
+    .goal-override-section { display: none; flex-direction: column; gap: 14px; }
+    .goal-override-section.visible { display: flex; }
 
     /* ─── PROFILE MODAL (first launch) ─── */
     .modal-overlay {
@@ -354,6 +384,8 @@
     .nav-tab.active .nav-tab-label { color: var(--green); }
     .nav-tab-pip { position: absolute; top: 6px; width: 4px; height: 4px; background: var(--green); border-radius: 50%; display: none; }
     .nav-tab.active .nav-tab-pip { display: block; }
+
+    /* Log entry actions (edit/delete) */
     .log-entry-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
     .btn-edit, .btn-delete {
       border: none; border-radius: var(--radius-sm); padding: 4px 8px;
@@ -363,6 +395,8 @@
     .btn-edit:active { background: var(--green-glow); color: var(--green); }
     .btn-delete { background: var(--surface3); color: var(--text-muted); }
     .btn-delete:active { background: rgba(248,113,113,0.15); color: var(--coral); }
+
+    /* Edit mode banner */
     .edit-mode-banner {
       background: var(--amber-glow, rgba(245,158,11,0.12)); border: 1px solid var(--amber-dim, #d97706);
       border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; color: var(--amber, #f59e0b);
@@ -370,6 +404,8 @@
     }
     .edit-mode-banner span { flex: 1; }
     .edit-cancel-btn { background: none; border: none; color: var(--amber, #f59e0b); font-size: 13px; cursor: pointer; padding: 0; font-family: var(--font); }
+
+    /* Clear day button */
     .clear-day-btn {
       width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-sm);
       background: var(--surface2); border: 1px solid var(--border);
@@ -420,6 +456,7 @@
           <div class="chip" onclick="fillInput('Just got back from a 30 min walk')">🚶 Morning walk</div>
           <div class="chip" onclick="fillInput('Lunch was a turkey sandwich and chips')">🥪 Turkey sandwich</div>
           <div class="chip" onclick="fillInput('What did I eat today?')">📊 Today\'s summary</div>
+          <div class="chip" onclick="fillInput('How was my week?')">📅 Weekly summary</div>
         </div>
       </div>
     </div>
@@ -457,31 +494,44 @@
       <div class="today-macros-grid">
         <div class="today-macro">
           <div class="today-macro-val pro" id="today-p">0g</div>
-          <div class="today-macro-lbl">Protein</div>
+          <div class="today-macro-lbl" id="today-p-lbl">Protein</div>
           <div class="today-macro-bar"><div class="today-macro-fill pro" id="today-p-bar" style="width:0%"></div></div>
         </div>
         <div class="today-macro">
           <div class="today-macro-val fiber" id="today-fiber">0g</div>
-          <div class="today-macro-lbl">Fiber</div>
+          <div class="today-macro-lbl" id="today-fiber-lbl">Fiber</div>
           <div class="today-macro-bar"><div class="today-macro-fill fiber" id="today-fiber-bar" style="width:0%"></div></div>
         </div>
         <div class="today-macro">
           <div class="today-macro-val carb" id="today-c">0g</div>
-          <div class="today-macro-lbl">Carbs</div>
+          <div class="today-macro-lbl" id="today-c-lbl">Carbs</div>
           <div class="today-macro-bar"><div class="today-macro-fill carb" id="today-c-bar" style="width:0%"></div></div>
         </div>
         <div class="today-macro">
           <div class="today-macro-val fat" id="today-f">0g</div>
-          <div class="today-macro-lbl">Fat</div>
+          <div class="today-macro-lbl" id="today-f-lbl">Fat</div>
           <div class="today-macro-bar"><div class="today-macro-fill fat" id="today-f-bar" style="width:0%"></div></div>
         </div>
       </div>
     </div>
-    <div id="today-activity-section" style="margin-top:16px; display:none;">
+
+    <!-- NET CALORIES STRIP -->
+    <div class="net-cal-strip" id="net-cal-strip" style="display:none;">
+      <div>
+        <div class="net-cal-label">Net Calories</div>
+        <div class="net-cal-detail" id="net-cal-detail">consumed − burned</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="net-cal-value" id="net-cal-value">0</div>
+        <div class="net-cal-detail" id="net-cal-goal-detail">of 0 goal</div>
+      </div>
+    </div>
+
+    <div id="today-activity-section" style="margin-top:0; display:none;">
       <div class="section-label">Activity</div>
       <div id="today-activity-list" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
-    <div style="margin-top:16px;">
+    <div style="margin-top:0;">
       <div class="section-label">Meals & Snacks</div>
       <div id="today-meals-list" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="empty-state" id="today-empty" style="display:none;">
@@ -517,19 +567,33 @@
       </div>
       <div class="profile-name" id="profile-display-name">Your Profile</div>
       <div class="profile-subtitle" id="profile-display-sub">Set up your profile for accurate tracking</div>
+      <div class="goals-summary" id="goals-summary-display" style="display:none; width:100%;">
+        <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--green)" id="gs-cal">—</div><div class="goals-summary-lbl">kcal</div></div>
+        <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--blue)" id="gs-p">—</div><div class="goals-summary-lbl">protein</div></div>
+        <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--teal)" id="gs-fiber">—</div><div class="goals-summary-lbl">fiber</div></div>
+        <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--amber)" id="gs-c">—</div><div class="goals-summary-lbl">carbs</div></div>
+        <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--coral)" id="gs-f">—</div><div class="goals-summary-lbl">fat</div></div>
+      </div>
     </div>
 
+    <!-- Personal Info Card -->
     <div class="profile-card">
       <div class="profile-card-title">Personal Info</div>
       <div class="profile-form">
-        <div class="profile-saved-banner" id="profile-saved-banner">✓ Profile saved</div>
+        <div class="profile-saved-banner" id="profile-saved-banner">✓ Profile saved — goals recalculated</div>
         <div class="form-group">
           <label class="form-label">Name</label>
           <input class="form-input" id="prof-name" type="text" placeholder="Dave" autocomplete="off"/>
         </div>
-        <div class="form-group">
-          <label class="form-label">Weight (lbs)</label>
-          <input class="form-input" id="prof-weight" type="number" placeholder="185" inputmode="decimal"/>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Age</label>
+            <input class="form-input" id="prof-age" type="number" placeholder="35" inputmode="decimal"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Weight (lbs)</label>
+            <input class="form-input" id="prof-weight" type="number" placeholder="185" inputmode="decimal"/>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Height</label>
@@ -548,6 +612,43 @@
           </select>
         </div>
         <button class="btn-save" onclick="saveProfile()">Save Profile</button>
+        <div style="text-align:center;">
+          <span onclick="toggleGoalOverrides()" style="font-size:13px; color:var(--text-muted); cursor:pointer;" id="goal-override-toggle">⚙ Override calculated goals</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goal Overrides Card -->
+    <div class="profile-card" id="goal-overrides-card" style="display:none;">
+      <div class="profile-card-title">Goal Overrides <span style="font-weight:400; font-size:10px; color:var(--text-muted);">(leave blank to use calculated)</span></div>
+      <div class="profile-form">
+        <div class="form-hint" style="padding:0; margin-top:-6px;">Calculated goals shown as placeholders.</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Calorie Goal</label>
+            <input class="form-input" id="override-cal" type="number" placeholder="—" inputmode="decimal"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+            <input class="form-input" id="override-p" type="number" placeholder="—" inputmode="decimal"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Carbs (g)</label>
+            <input class="form-input" id="override-c" type="number" placeholder="—" inputmode="decimal"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fat (g)</label>
+            <input class="form-input" id="override-f" type="number" placeholder="—" inputmode="decimal"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fiber (g)</label>
+          <input class="form-input" id="override-fiber" type="number" placeholder="—" inputmode="decimal" style="width:50%;"/>
+        </div>
+        <button class="btn-save" onclick="saveGoalOverrides()">Save Goal Overrides</button>
+        <div class="profile-saved-banner" id="override-saved-banner">✓ Goal overrides saved</div>
       </div>
     </div>
   </div>
@@ -557,15 +658,21 @@
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">Welcome to NutriChat 👋</div>
-      <div class="modal-sub">Set up your profile for accurate calorie burn estimates and personalized tracking.</div>
+      <div class="modal-sub">Set up your profile for personalized calorie and macro targets.</div>
       <div class="profile-form" style="padding:0;">
         <div class="form-group">
           <label class="form-label">Your Name</label>
           <input class="form-input" id="modal-name" type="text" placeholder="Dave" autocomplete="off"/>
         </div>
-        <div class="form-group">
-          <label class="form-label">Weight (lbs)</label>
-          <input class="form-input" id="modal-weight" type="number" placeholder="185" inputmode="decimal"/>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Age</label>
+            <input class="form-input" id="modal-age" type="number" placeholder="35" inputmode="decimal"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Weight (lbs)</label>
+            <input class="form-input" id="modal-weight" type="number" placeholder="185" inputmode="decimal"/>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Height</label>
@@ -632,6 +739,55 @@
 // ─── STORAGE KEYS ─────────────────────────────────────────────────────────────
 const STORAGE_KEY   = 'nutrichat_v1';
 const PROFILE_KEY   = 'nutrichat_profile';
+const OVERRIDES_KEY = 'nutrichat_goal_overrides';
+
+// ─── GOAL CALCULATION (Mifflin-St Jeor TDEE) ──────────────────────────────────
+const ACTIVITY_MULTIPLIERS = {
+  'Sedentary':         1.2,
+  'Slightly Active':   1.375,
+  'Moderately Active': 1.55,
+  'Active':            1.725,
+};
+
+function calcGoals(profile) {
+  // Check for manual overrides first
+  const ov = loadOverrides();
+
+  // Defaults in case profile is incomplete
+  const defaults = { cal: 2000, p: 150, fiber: 35, c: 250, fat: 65 };
+  if (!profile || !profile.weightLbs || !profile.heightFt) {
+    return Object.assign({}, defaults,
+      ov.cal   ? { cal: ov.cal }   : {},
+      ov.p     ? { p: ov.p }       : {},
+      ov.fiber ? { fiber: ov.fiber }: {},
+      ov.c     ? { c: ov.c }       : {},
+      ov.fat   ? { fat: ov.fat }   : {}
+    );
+  }
+
+  const weightKg  = profile.weightLbs * 0.453592;
+  const heightCm  = ((profile.heightFt || 5) * 12 + (profile.heightIn || 10)) * 2.54;
+  const age       = profile.age || 35;
+  const bmr       = 10 * weightKg + 6.25 * heightCm - 5 * age + 5; // male
+  const multiplier = ACTIVITY_MULTIPLIERS[profile.activityLevel] || 1.55;
+  const tdee      = Math.round(bmr * multiplier);
+
+  // Macro splits: protein 30%, carbs 40%, fat 30%
+  // protein & carbs = 4 kcal/g, fat = 9 kcal/g
+  const calGoal   = tdee;
+  const pGoal     = Math.round((tdee * 0.30) / 4);
+  const cGoal     = Math.round((tdee * 0.40) / 4);
+  const fatGoal   = Math.round((tdee * 0.30) / 9);
+  const fiberGoal = Math.round(tdee / 1000 * 14);
+
+  return {
+    cal:   ov.cal   || calGoal,
+    p:     ov.p     || pGoal,
+    fiber: ov.fiber || fiberGoal,
+    c:     ov.c     || cGoal,
+    fat:   ov.fat   || fatGoal,
+  };
+}
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function loadProfile() {
@@ -643,22 +799,45 @@ function saveProfileData(p) {
 }
 function getProfile() { return loadProfile(); }
 
+function loadOverrides() {
+  try { return JSON.parse(localStorage.getItem(OVERRIDES_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveOverridesData(ov) {
+  localStorage.setItem(OVERRIDES_KEY, JSON.stringify(ov));
+}
+
 function populateProfileForm(p) {
   if (!p) return;
   document.getElementById('prof-name').value       = p.name || '';
+  document.getElementById('prof-age').value        = p.age || '';
   document.getElementById('prof-weight').value     = p.weightLbs || '';
   document.getElementById('prof-height-ft').value  = p.heightFt || '';
   document.getElementById('prof-height-in').value  = p.heightIn || '';
   document.getElementById('prof-activity').value   = p.activityLevel || 'Moderately Active';
+  // Populate override fields with current values (calculated as placeholders)
+  const goals = calcGoals(p);
+  document.getElementById('override-cal').placeholder   = goals.cal;
+  document.getElementById('override-p').placeholder     = goals.p;
+  document.getElementById('override-c').placeholder     = goals.c;
+  document.getElementById('override-f').placeholder     = goals.fat;
+  document.getElementById('override-fiber').placeholder = goals.fiber;
+  // Fill in saved overrides if any
+  const ov = loadOverrides();
+  document.getElementById('override-cal').value   = ov.cal   || '';
+  document.getElementById('override-p').value     = ov.p     || '';
+  document.getElementById('override-c').value     = ov.c     || '';
+  document.getElementById('override-f').value     = ov.fat   || '';
+  document.getElementById('override-fiber').value = ov.fiber || '';
 }
 
 function updateProfileDisplay(p) {
   if (!p) return;
-  const nameEl = document.getElementById('profile-display-name');
-  const subEl  = document.getElementById('profile-display-sub');
+  const nameEl  = document.getElementById('profile-display-name');
+  const subEl   = document.getElementById('profile-display-sub');
   const titleEl = document.getElementById('welcome-title');
   if (p.name) {
-    nameEl.textContent = p.name;
+    nameEl.textContent  = p.name;
     titleEl.textContent = `Hey ${p.name} 👋`;
   }
   const parts = [];
@@ -668,11 +847,22 @@ function updateProfileDisplay(p) {
   subEl.textContent = parts.length ? parts.join(' · ') : 'Set up your profile for accurate tracking';
   const btn = document.getElementById('header-profile-btn');
   btn.classList.toggle('has-profile', !!p.name || !!p.weightLbs);
+
+  // Update goals summary strip in profile header
+  const goals = calcGoals(p);
+  const gsd = document.getElementById('goals-summary-display');
+  gsd.style.display = '';
+  document.getElementById('gs-cal').textContent   = goals.cal;
+  document.getElementById('gs-p').textContent     = goals.p+'g';
+  document.getElementById('gs-fiber').textContent = goals.fiber+'g';
+  document.getElementById('gs-c').textContent     = goals.c+'g';
+  document.getElementById('gs-f').textContent     = goals.fat+'g';
 }
 
 function saveProfile() {
   const p = {
     name:          document.getElementById('prof-name').value.trim(),
+    age:           parseInt(document.getElementById('prof-age').value) || 35,
     weightLbs:     parseFloat(document.getElementById('prof-weight').value) || null,
     heightFt:      parseInt(document.getElementById('prof-height-ft').value) || null,
     heightIn:      parseInt(document.getElementById('prof-height-in').value) || 0,
@@ -680,14 +870,38 @@ function saveProfile() {
   };
   saveProfileData(p);
   updateProfileDisplay(p);
+  populateProfileForm(p);
   const banner = document.getElementById('profile-saved-banner');
   banner.style.display = 'block';
   setTimeout(() => { banner.style.display = 'none'; }, 2500);
 }
 
+function saveGoalOverrides() {
+  const ov = {
+    cal:   parseInt(document.getElementById('override-cal').value) || null,
+    p:     parseInt(document.getElementById('override-p').value)   || null,
+    c:     parseInt(document.getElementById('override-c').value)   || null,
+    fat:   parseInt(document.getElementById('override-f').value)   || null,
+    fiber: parseInt(document.getElementById('override-fiber').value)|| null,
+  };
+  // Remove nulls so calcGoals falls back to computed values cleanly
+  Object.keys(ov).forEach(k => { if (!ov[k]) delete ov[k]; });
+  saveOverridesData(ov);
+  updateProfileDisplay(getProfile());
+  const banner = document.getElementById('override-saved-banner');
+  banner.style.display = 'block';
+  setTimeout(() => { banner.style.display = 'none'; }, 2500);
+}
+
+function toggleGoalOverrides() {
+  const card = document.getElementById('goal-overrides-card');
+  card.style.display = card.style.display === 'none' ? '' : 'none';
+}
+
 function saveProfileFromModal() {
   const p = {
     name:          document.getElementById('modal-name').value.trim(),
+    age:           parseInt(document.getElementById('modal-age').value) || 35,
     weightLbs:     parseFloat(document.getElementById('modal-weight').value) || null,
     heightFt:      parseInt(document.getElementById('modal-height-ft').value) || null,
     heightIn:      parseInt(document.getElementById('modal-height-in').value) || 0,
@@ -703,12 +917,27 @@ function dismissModal() {
   document.getElementById('profile-modal').classList.add('hidden');
 }
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
+// ─── STATE & 2-WEEK PERSISTENCE ───────────────────────────────────────────────
+const MAX_DAYS = 14;
+
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { entries: [], messages: [] }; }
   catch { return { entries: [], messages: [] }; }
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() {
+  pruneOldEntries();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function pruneOldEntries() {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - MAX_DAYS);
+  const cutoffKey = cutoff.toISOString().slice(0,10);
+  state.entries = (state.entries || []).filter(e => e.date >= cutoffKey);
+  // Keep messages only for today to keep storage lean
+  const today = todayKey();
+  state.messages = (state.messages || []).filter(m => m.ts && m.ts.slice(0,10) === today);
+}
 
 let state = loadState();
 let currentFilter = 'all';
@@ -782,6 +1011,12 @@ function looksLikeSummary(text) {
   return SUMMARY_KWS.some(k => l.includes(k));
 }
 
+const WEEKLY_KWS = ['how was my week','weekly summary','this week','week summary','last 7 days','past week','weekly report','week\'s summary'];
+function looksLikeWeekly(text) {
+  const l = text.toLowerCase();
+  return WEEKLY_KWS.some(k => l.includes(k));
+}
+
 // Edit state
 let editingEntryId = null;
 
@@ -821,8 +1056,9 @@ function clearToday() {
   saveMessage('ai', 'Today\'s log has been cleared.');
 }
 
+// ─── DAILY SUMMARY ────────────────────────────────────────────────────────────
 function handleSummaryRequest() {
-  const today = todayKey();
+  const today    = todayKey();
   const food     = (state.entries||[]).filter(e => e.date === today && e.type === 'food');
   const activity = (state.entries||[]).filter(e => e.date === today && e.type === 'activity');
 
@@ -838,19 +1074,82 @@ function handleSummaryRequest() {
   const totC      = food.reduce((s,e) => s+(e.macros?.c||0), 0);
   const totF      = food.reduce((s,e) => s+(e.macros?.f||0), 0);
   const totBurned = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
+  const netCal    = totCal - totBurned;
+  const goals     = calcGoals(getProfile());
 
   const foodLines = food.map(e => `• ${e.name} (${e.macros?.cal||0} kcal)`).join('\n');
   const actLines  = activity.length ? '\n\nActivity:\n' + activity.map(e => `• ${e.name} — ${Math.abs(e.cal)} kcal burned`).join('\n') : '';
+  const netLine   = totBurned ? `\n\nNet: ${netCal} kcal (${totCal} consumed − ${totBurned} burned) vs ${goals.cal} goal` : '';
 
   let reply = `Here's your day so far — ${food.length} meal${food.length!==1?'s':''} logged`;
   if (totBurned) reply += `, ${totBurned} kcal burned`;
-  reply += `:\n\n${foodLines}${actLines}`;
+  reply += `:\n\n${foodLines}${actLines}${netLine}`;
 
   const macros = { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF };
   appendBubble('ai', reply, macros);
   saveMessage('ai', reply, macros);
 }
 
+// ─── WEEKLY SUMMARY ───────────────────────────────────────────────────────────
+function handleWeeklySummary() {
+  const today  = todayKey();
+  const days   = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  const goals = calcGoals(getProfile());
+
+  // Build per-day stats
+  const dayStats = days.map(date => {
+    const food     = (state.entries||[]).filter(e => e.date === date && e.type === 'food');
+    const activity = (state.entries||[]).filter(e => e.date === date && e.type === 'activity');
+    const cal      = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
+    const p        = food.reduce((s,e) => s+(e.macros?.p||0), 0);
+    const burned   = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
+    return { date, cal, p, burned, foodCount: food.length, actCount: activity.length };
+  });
+
+  const loggedDays   = dayStats.filter(d => d.foodCount > 0);
+  const totalActDays = dayStats.filter(d => d.actCount > 0).length;
+
+  if (!loggedDays.length) {
+    const msg = "No food logged in the past 7 days. Start logging meals to see weekly summaries!";
+    appendBubble('ai', msg);
+    saveMessage('ai', msg);
+    return;
+  }
+
+  const avgCal  = Math.round(loggedDays.reduce((s,d) => s+d.cal, 0) / loggedDays.length);
+  const avgP    = Math.round(loggedDays.reduce((s,d) => s+d.p, 0)   / loggedDays.length);
+  const totBurn = dayStats.reduce((s,d) => s+d.burned, 0);
+  const best    = [...loggedDays].sort((a,b) => {
+    // "best" = closest to goal without going over, or lowest if all over
+    const aDiff = Math.abs(a.cal - goals.cal);
+    const bDiff = Math.abs(b.cal - goals.cal);
+    return aDiff - bDiff;
+  })[0];
+  const highest = [...loggedDays].sort((a,b) => b.cal - a.cal)[0];
+  const lowest  = [...loggedDays].sort((a,b) => a.cal - b.cal)[0];
+
+  const calStatus = avgCal <= goals.cal
+    ? `${avgCal} avg — under your ${goals.cal} goal 🟢`
+    : `${avgCal} avg — ${avgCal - goals.cal} over your ${goals.cal} goal 🔴`;
+
+  let reply = `📅 Weekly Summary (${loggedDays.length}/7 days logged)\n\n`;
+  reply += `Calories: ${calStatus}\n`;
+  reply += `Avg Protein: ${avgP}g (goal: ${goals.p}g)\n`;
+  if (totBurn) reply += `Total Burned: ${totBurn} kcal across ${totalActDays} active day${totalActDays!==1?'s':''}\n`;
+  reply += `\nBest day: ${formatDateLabel(best.date)} (${best.cal} kcal)`;
+  reply += `\nHighest: ${formatDateLabel(highest.date)} (${highest.cal} kcal)`;
+  if (highest.date !== lowest.date) reply += `\nLowest: ${formatDateLabel(lowest.date)} (${lowest.cal} kcal)`;
+
+  appendBubble('ai', reply);
+  saveMessage('ai', reply);
+}
+
+// ─── SEND MESSAGE ─────────────────────────────────────────────────────────────
 async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
@@ -862,7 +1161,14 @@ async function sendMessage() {
   chatInput.style.height = 'auto';
   sendBtn.disabled = true;
 
-  // Handle summary client-side — no API call needed
+  // Handle weekly summary client-side
+  if (!editingEntryId && looksLikeWeekly(text)) {
+    handleWeeklySummary();
+    sendBtn.disabled = false;
+    return;
+  }
+
+  // Handle daily summary client-side
   if (!editingEntryId && looksLikeSummary(text)) {
     document.getElementById('edit-banner').style.display = 'none';
     handleSummaryRequest();
@@ -870,10 +1176,10 @@ async function sendMessage() {
     return;
   }
 
-  const typingRow = appendTyping();
-  const profile = getProfile();
+  const typingRow  = appendTyping();
+  const profile    = getProfile();
   const isActivity = looksLikeActivity(text);
-  const isEditing = editingEntryId !== null;
+  const isEditing  = editingEntryId !== null;
 
   try {
     const endpoint = isActivity ? '/analyze-activity' : '/analyze';
@@ -892,7 +1198,12 @@ async function sendMessage() {
     }
 
     if (isActivity) {
-      const entry = { id: isEditing ? editingEntryId : Date.now(), type: 'activity', name: parsed.desc, cal: parsed.cal, duration: parsed.duration, met: parsed.met, notes: parsed.notes, ts: new Date().toISOString(), date: todayKey() };
+      const entry = {
+        id: isEditing ? editingEntryId : Date.now(),
+        type: 'activity', name: parsed.desc, cal: parsed.cal,
+        duration: parsed.duration, met: parsed.met, notes: parsed.notes,
+        ts: new Date().toISOString(), date: todayKey()
+      };
       if (isEditing) { state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e); }
       else { state.entries.push(entry); }
       saveState();
@@ -900,7 +1211,12 @@ async function sendMessage() {
       appendBubble('ai', replyText, null, { cal: parsed.cal, duration: parsed.duration||'?' });
       saveMessage('ai', replyText);
     } else {
-      const entry = { id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc, macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat }, ts: new Date().toISOString(), date: todayKey() };
+      const entry = {
+        id: isEditing ? editingEntryId : Date.now(),
+        type: 'food', name: parsed.desc,
+        macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
+        ts: new Date().toISOString(), date: todayKey()
+      };
       if (isEditing) { state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e); }
       else { state.entries.push(entry); }
       saveState();
@@ -932,7 +1248,7 @@ function appendBubble(role, text, macros = null, activityData = null) {
   avatar.className = 'bubble-avatar';
   const profile = getProfile();
   avatar.textContent = role === 'ai' ? 'N' : (profile?.name?.[0]?.toUpperCase() || 'D');
-  const wrap = document.createElement('div');
+  const wrap  = document.createElement('div');
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.textContent = text;
@@ -982,6 +1298,7 @@ function appendTyping() {
 }
 
 function saveMessage(role, text, macros = null) {
+  if (!state.messages) state.messages = [];
   state.messages.push({ role, text, macros, ts: new Date().toISOString() });
   saveState();
 }
@@ -995,30 +1312,55 @@ function restoreChat() {
 
 // ─── TODAY VIEW ───────────────────────────────────────────────────────────────
 function renderToday() {
-  const today = todayKey();
+  const today   = todayKey();
   const entries  = (state.entries || []).filter(e => e.date === today);
   const food     = entries.filter(e => e.type === 'food');
   const activity = entries.filter(e => e.type === 'activity');
+  const goals    = calcGoals(getProfile());
 
   const totalCal   = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
   const totalP     = food.reduce((s,e) => s+(e.macros?.p||0), 0);
   const totalFiber = food.reduce((s,e) => s+(e.macros?.fiber||0), 0);
   const totalC     = food.reduce((s,e) => s+(e.macros?.c||0), 0);
   const totalF     = food.reduce((s,e) => s+(e.macros?.f||0), 0);
+  const totBurned  = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
+  const netCal     = totalCal - totBurned;
 
-  document.getElementById('today-cal-val').textContent  = totalCal;
+  // Calorie ring
+  document.getElementById('today-cal-val').textContent = totalCal;
+  const circ = 207.3;
+  document.getElementById('cal-ring-fill').style.strokeDashoffset =
+    circ - (circ * Math.min(totalCal / goals.cal, 1));
+
+  // Macros
   document.getElementById('today-p').textContent        = totalP+'g';
   document.getElementById('today-fiber').textContent    = totalFiber+'g';
   document.getElementById('today-c').textContent        = totalC+'g';
   document.getElementById('today-f').textContent        = totalF+'g';
+  document.getElementById('today-p-lbl').textContent    = `Protein / ${goals.p}g`;
+  document.getElementById('today-fiber-lbl').textContent= `Fiber / ${goals.fiber}g`;
+  document.getElementById('today-c-lbl').textContent    = `Carbs / ${goals.c}g`;
+  document.getElementById('today-f-lbl').textContent    = `Fat / ${goals.fat}g`;
 
-  const circ = 207.3, goal = 2000;
-  document.getElementById('cal-ring-fill').style.strokeDashoffset = circ-(circ*Math.min(totalCal/goal,1));
-  document.getElementById('today-p-bar').style.width     = Math.min(totalP/150*100,100)+'%';
-  document.getElementById('today-fiber-bar').style.width = Math.min(totalFiber/35*100,100)+'%';
-  document.getElementById('today-c-bar').style.width     = Math.min(totalC/250*100,100)+'%';
-  document.getElementById('today-f-bar').style.width     = Math.min(totalF/65*100,100)+'%';
+  document.getElementById('today-p-bar').style.width     = Math.min(totalP/goals.p*100,100)+'%';
+  document.getElementById('today-fiber-bar').style.width = Math.min(totalFiber/goals.fiber*100,100)+'%';
+  document.getElementById('today-c-bar').style.width     = Math.min(totalC/goals.c*100,100)+'%';
+  document.getElementById('today-f-bar').style.width     = Math.min(totalF/goals.fat*100,100)+'%';
 
+  // Net calories strip — show only if activity logged
+  const netStrip = document.getElementById('net-cal-strip');
+  if (totBurned > 0) {
+    netStrip.style.display = '';
+    const netEl = document.getElementById('net-cal-value');
+    netEl.textContent = netCal;
+    netEl.className = 'net-cal-value ' + (netCal <= goals.cal ? 'under' : 'over');
+    document.getElementById('net-cal-detail').textContent = `${totalCal} consumed − ${totBurned} burned`;
+    document.getElementById('net-cal-goal-detail').textContent = `of ${goals.cal} kcal goal`;
+  } else {
+    netStrip.style.display = 'none';
+  }
+
+  // Activity list
   const actSection = document.getElementById('today-activity-section');
   const actList    = document.getElementById('today-activity-list');
   if (activity.length) {
@@ -1037,6 +1379,7 @@ function renderToday() {
     actSection.style.display = 'none';
   }
 
+  // Meals list
   const mealList = document.getElementById('today-meals-list');
   const empty    = document.getElementById('today-empty');
   if (food.length) {
@@ -1067,7 +1410,7 @@ function setFilter(btn, filter) {
 }
 
 function renderLog() {
-  const entries = (state.entries || []).filter(e =>
+  const entries  = (state.entries || []).filter(e =>
     currentFilter === 'all' ? true : currentFilter === 'food' ? e.type === 'food' : e.type === 'activity'
   );
   const logList  = document.getElementById('log-list');
