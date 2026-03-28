@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NutriChat" />
-  <meta name="theme-color" content="#0f1410" />
+  <meta name="theme-color" id="meta-theme-color" content="#0f1410" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <title>NutriChat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    :root {
+    /* ─── DARK THEME (default) ─── */
+    :root,
+    [data-theme="dark"] {
       --bg:          #0f1410;
       --surface:     #161d17;
       --surface2:    #1c2620;
@@ -37,19 +39,54 @@
       --text-muted:  #4a6b4e;
       --user-bubble: #1a2e1c;
       --ai-bubble:   #161d17;
+      --icon-sun:    block;
+      --icon-moon:   none;
+    }
+
+    /* ─── LIGHT THEME ─── */
+    [data-theme="light"] {
+      --bg:          #f4f7f4;
+      --surface:     #ffffff;
+      --surface2:    #eef3ef;
+      --surface3:    #e4ece5;
+      --border:      #cddace;
+      --green:       #16a34a;
+      --green-dim:   #15803d;
+      --green-glow:  rgba(22,163,74,0.10);
+      --green-glow2: rgba(22,163,74,0.05);
+      --blue:        #2563eb;
+      --blue-dim:    #1d4ed8;
+      --blue-glow:   rgba(37,99,235,0.10);
+      --amber:       #b45309;
+      --amber-dim:   #92400e;
+      --coral:       #dc2626;
+      --coral-dim:   #b91c1c;
+      --teal:        #0d9488;
+      --teal-dim:    #0f766e;
+      --text:        #1a2e1c;
+      --text-dim:    #3d5e40;
+      --text-muted:  #7a9a7e;
+      --user-bubble: #dcf5e3;
+      --ai-bubble:   #ffffff;
+      --icon-sun:    none;
+      --icon-moon:   block;
+    }
+
+    /* ─── CONSTANTS (theme-independent) ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
       --radius:      14px;
       --radius-sm:   8px;
       --font:        'DM Sans', sans-serif;
       --mono:        'DM Mono', monospace;
-      --nav-h:       68px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top:    env(safe-area-inset-top, 0px);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%; overflow: hidden;
-      font-family: var(--font); background: var(--bg); color: var(--text);
-      -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.25s, color 0.25s;
     }
     #app {
       display: flex; flex-direction: column;
@@ -61,7 +98,7 @@
       flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
       padding: calc(var(--safe-top) + 12px) 20px 12px;
       background: var(--bg); border-bottom: 1px solid var(--border);
-      position: relative; z-index: 10;
+      position: relative; z-index: 10; transition: background-color 0.25s, border-color 0.25s;
     }
     .header-logo { display: flex; align-items: center; gap: 8px; }
     .logo-icon {
@@ -71,8 +108,21 @@
     .logo-icon svg { width: 16px; height: 16px; }
     .logo-text { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; color: var(--text); }
     .logo-text span { color: var(--green); }
-    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
     .header-date { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* Theme toggle */
+    .theme-toggle-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: border-color 0.15s, background 0.2s;
+    }
+    .theme-toggle-btn:active { border-color: var(--green); }
+    .theme-toggle-btn svg { width: 15px; height: 15px; color: var(--text-dim); }
+    .icon-sun  { display: var(--icon-sun,  block); }
+    .icon-moon { display: var(--icon-moon, none);  }
+
     .header-profile-btn {
       width: 30px; height: 30px; border-radius: 50%; background: var(--surface2);
       border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
@@ -111,6 +161,21 @@
     }
     .chip:active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
 
+    /* Recent meals */
+    .recent-meals-section { width: 100%; margin-top: 4px; }
+    .recent-meals-label {
+      font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+    }
+    .recent-meals-row { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+    .recent-chip {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      padding: 6px 12px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+      transition: all 0.15s; max-width: 180px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .recent-chip:active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
+
     .bubble-row { display: flex; gap: 8px; animation: bubbleIn 0.2s ease; }
     @keyframes bubbleIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
     .bubble-row.user { flex-direction: row-reverse; }
@@ -145,7 +210,6 @@
       border-radius: var(--radius-sm); padding: 10px 12px;
       display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
     }
-    .activity-card .macro-val { color: var(--blue); }
 
     #chat-input-area {
       flex-shrink: 0; background: var(--bg); border-top: 1px solid var(--border);
@@ -181,6 +245,25 @@
     /* ─── TODAY VIEW ─── */
     #view-today { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
     .section-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+    /* Day navigation */
+    .day-nav {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
+    }
+    .day-nav-btn {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--surface2);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+    }
+    .day-nav-btn:active { background: var(--green-glow); border-color: var(--green-dim); }
+    .day-nav-btn svg { width: 16px; height: 16px; color: var(--text-dim); }
+    .day-nav-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+    .day-nav-label {
+      font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.8px; text-align: center; flex: 1;
+    }
+    .day-nav-label.is-today { color: var(--green); }
+
     .today-summary {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 20px; display: flex; align-items: center; gap: 20px;
@@ -203,7 +286,7 @@
     .today-macro-val.fiber { color: var(--teal); }
     .today-macro-val.carb  { color: var(--amber); }
     .today-macro-val.fat   { color: var(--coral); }
-    .today-macro-lbl { font-size: 11px; color: var(--text-muted); }
+    .today-macro-lbl { font-size: 10px; color: var(--text-muted); }
 
     /* Net calories strip */
     .net-cal-strip {
@@ -285,7 +368,6 @@
     .profile-name { font-size: 20px; font-weight: 600; color: var(--text); }
     .profile-subtitle { font-size: 13px; color: var(--text-dim); }
 
-    /* Goals card in profile */
     .goals-summary {
       background: var(--surface2); border-radius: var(--radius-sm);
       padding: 12px; display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-top: 4px;
@@ -302,14 +384,6 @@
       text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border);
       background: var(--surface2);
     }
-    .profile-field {
-      padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-    .profile-field:last-child { border-bottom: none; }
-    .profile-field-label { font-size: 14px; color: var(--text-dim); }
-    .profile-field-value { font-family: var(--mono); font-size: 14px; color: var(--text); font-weight: 500; }
-
     .profile-form { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
@@ -330,27 +404,17 @@
     }
     .form-select:focus { border-color: var(--green-dim); }
     .btn-save {
-      background: var(--green); color: #0f1410; border: none; border-radius: var(--radius-sm);
+      background: var(--green); color: #fff; border: none; border-radius: var(--radius-sm);
       padding: 13px; font-family: var(--font); font-size: 15px; font-weight: 600;
       cursor: pointer; transition: background 0.15s; margin-top: 4px;
     }
     .btn-save:active { background: var(--green-dim); }
-    .btn-secondary {
-      background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 10px 14px; font-family: var(--font); font-size: 14px;
-      cursor: pointer; transition: all 0.15s; text-align: center;
-    }
-    .btn-secondary:active { border-color: var(--green-dim); color: var(--green); }
     .profile-saved-banner {
       background: var(--green-glow); border: 1px solid var(--green-dim); border-radius: var(--radius-sm);
-      padding: 10px 14px; font-size: 13px; color: var(--green); text-align: center;
-      display: none;
+      padding: 10px 14px; font-size: 13px; color: var(--green); text-align: center; display: none;
     }
-    /* Goal override section toggle */
-    .goal-override-section { display: none; flex-direction: column; gap: 14px; }
-    .goal-override-section.visible { display: flex; }
 
-    /* ─── PROFILE MODAL (first launch) ─── */
+    /* ─── PROFILE MODAL ─── */
     .modal-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.75);
       display: flex; align-items: flex-end; justify-content: center;
@@ -385,7 +449,7 @@
     .nav-tab-pip { position: absolute; top: 6px; width: 4px; height: 4px; background: var(--green); border-radius: 50%; display: none; }
     .nav-tab.active .nav-tab-pip { display: block; }
 
-    /* Log entry actions (edit/delete) */
+    /* Log entry actions */
     .log-entry-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
     .btn-edit, .btn-delete {
       border: none; border-radius: var(--radius-sm); padding: 4px 8px;
@@ -398,21 +462,21 @@
 
     /* Edit mode banner */
     .edit-mode-banner {
-      background: var(--amber-glow, rgba(245,158,11,0.12)); border: 1px solid var(--amber-dim, #d97706);
-      border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; color: var(--amber, #f59e0b);
+      background: rgba(245,158,11,0.12); border: 1px solid var(--amber-dim);
+      border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; color: var(--amber);
       display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0;
     }
     .edit-mode-banner span { flex: 1; }
-    .edit-cancel-btn { background: none; border: none; color: var(--amber, #f59e0b); font-size: 13px; cursor: pointer; padding: 0; font-family: var(--font); }
+    .edit-cancel-btn { background: none; border: none; color: var(--amber); font-size: 13px; cursor: pointer; padding: 0; font-family: var(--font); }
 
     /* Clear day button */
     .clear-day-btn {
       width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-sm);
       background: var(--surface2); border: 1px solid var(--border);
-      color: var(--coral, #f87171); font-family: var(--font); font-size: 13px;
+      color: var(--coral); font-family: var(--font); font-size: 13px;
       cursor: pointer; transition: all 0.15s;
     }
-    .clear-day-btn:active { background: rgba(248,113,113,0.1); border-color: var(--coral-dim, #ef4444); }
+    .clear-day-btn:active { background: rgba(248,113,113,0.1); border-color: var(--coral-dim); }
   </style>
 </head>
 <body>
@@ -431,6 +495,20 @@
     </div>
     <div class="header-right">
       <div class="header-date" id="header-date"></div>
+      <!-- Theme toggle: sun = switch to light, moon = switch to dark -->
+      <div class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </div>
+      <!-- Profile button -->
       <div class="header-profile-btn" id="header-profile-btn" onclick="switchView('profile')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -452,11 +530,16 @@
         <div class="welcome-title" id="welcome-title">Hey Dave 👋</div>
         <div class="welcome-sub">Tell me what you ate or log an activity. I'll handle the math.</div>
         <div class="welcome-chips">
-          <div class="chip" onclick="fillInput('Had 3 scrambled eggs and toast for breakfast')">🥚 Eggs & toast</div>
+          <div class="chip" onclick="fillInput('Had 3 scrambled eggs and toast for breakfast')">🥚 Eggs &amp; toast</div>
           <div class="chip" onclick="fillInput('Just got back from a 30 min walk')">🚶 Morning walk</div>
           <div class="chip" onclick="fillInput('Lunch was a turkey sandwich and chips')">🥪 Turkey sandwich</div>
-          <div class="chip" onclick="fillInput('What did I eat today?')">📊 Today\'s summary</div>
+          <div class="chip" onclick="fillInput('What did I eat today?')">📊 Today's summary</div>
           <div class="chip" onclick="fillInput('How was my week?')">📅 Weekly summary</div>
+        </div>
+        <!-- Recent meals: populated by JS when history exists -->
+        <div class="recent-meals-section" id="recent-meals-section" style="display:none;">
+          <div class="recent-meals-label">Recent meals</div>
+          <div class="recent-meals-row" id="recent-meals-row"></div>
         </div>
       </div>
     </div>
@@ -477,13 +560,28 @@
 
   <!-- TODAY VIEW -->
   <div class="view" id="view-today">
-    <div class="section-label">Daily overview</div>
+    <!-- Day navigation -->
+    <div class="day-nav">
+      <button class="day-nav-btn" id="day-prev-btn" onclick="navigateDay(-1)" title="Previous day">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="day-nav-label is-today" id="day-nav-label">Today</div>
+      <button class="day-nav-btn" id="day-next-btn" onclick="navigateDay(1)" title="Next day" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="section-label" id="today-section-label">Daily overview</div>
     <div class="today-summary">
       <div class="cal-ring">
         <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="33" fill="none" stroke="#222e25" stroke-width="7"/>
+          <circle cx="40" cy="40" r="33" fill="none" stroke="var(--surface3)" stroke-width="7"/>
           <circle id="cal-ring-fill" cx="40" cy="40" r="33" fill="none"
-            stroke="#22c55e" stroke-width="7" stroke-dasharray="207.3" stroke-dashoffset="207.3"
+            stroke="var(--green)" stroke-width="7" stroke-dasharray="207.3" stroke-dashoffset="207.3"
             stroke-linecap="round" style="transition: stroke-dashoffset 0.6s ease"/>
         </svg>
         <div class="cal-ring-text">
@@ -515,7 +613,7 @@
       </div>
     </div>
 
-    <!-- NET CALORIES STRIP -->
+    <!-- Net calories strip -->
     <div class="net-cal-strip" id="net-cal-strip" style="display:none;">
       <div>
         <div class="net-cal-label">Net Calories</div>
@@ -532,11 +630,11 @@
       <div id="today-activity-list" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
     <div style="margin-top:0;">
-      <div class="section-label">Meals & Snacks</div>
+      <div class="section-label">Meals &amp; Snacks</div>
       <div id="today-meals-list" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="empty-state" id="today-empty" style="display:none;">
         <div class="empty-state-icon">🥗</div>
-        No meals logged yet today.<br>Head to Chat to get started.
+        No meals logged for this day.<br>Head to Chat to get started.
       </div>
     </div>
   </div>
@@ -576,7 +674,6 @@
       </div>
     </div>
 
-    <!-- Personal Info Card -->
     <div class="profile-card">
       <div class="profile-card-title">Personal Info</div>
       <div class="profile-form">
@@ -613,7 +710,7 @@
         </div>
         <button class="btn-save" onclick="saveProfile()">Save Profile</button>
         <div style="text-align:center;">
-          <span onclick="toggleGoalOverrides()" style="font-size:13px; color:var(--text-muted); cursor:pointer;" id="goal-override-toggle">⚙ Override calculated goals</span>
+          <span onclick="toggleGoalOverrides()" style="font-size:13px; color:var(--text-muted); cursor:pointer;">⚙ Override calculated goals</span>
         </div>
       </div>
     </div>
@@ -734,95 +831,88 @@
   </nav>
 
 </div>
-
 <script>
 // ─── STORAGE KEYS ─────────────────────────────────────────────────────────────
 const STORAGE_KEY   = 'nutrichat_v1';
 const PROFILE_KEY   = 'nutrichat_profile';
 const OVERRIDES_KEY = 'nutrichat_goal_overrides';
+const THEME_KEY     = 'nutrichat_theme';
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('meta-theme-color').content = theme === 'light' ? '#f4f7f4' : '#0f1410';
+  localStorage.setItem(THEME_KEY, theme);
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+// Init theme immediately (before render) to avoid flash
+(function() {
+  const saved = localStorage.getItem(THEME_KEY);
+  applyTheme(saved || getSystemTheme());
+})();
 
 // ─── GOAL CALCULATION (Mifflin-St Jeor TDEE) ──────────────────────────────────
 const ACTIVITY_MULTIPLIERS = {
-  'Sedentary':         1.2,
-  'Slightly Active':   1.375,
-  'Moderately Active': 1.55,
-  'Active':            1.725,
+  'Sedentary': 1.2, 'Slightly Active': 1.375, 'Moderately Active': 1.55, 'Active': 1.725,
 };
-
 function calcGoals(profile) {
-  // Check for manual overrides first
   const ov = loadOverrides();
-
-  // Defaults in case profile is incomplete
   const defaults = { cal: 2000, p: 150, fiber: 35, c: 250, fat: 65 };
   if (!profile || !profile.weightLbs || !profile.heightFt) {
     return Object.assign({}, defaults,
-      ov.cal   ? { cal: ov.cal }   : {},
-      ov.p     ? { p: ov.p }       : {},
-      ov.fiber ? { fiber: ov.fiber }: {},
-      ov.c     ? { c: ov.c }       : {},
-      ov.fat   ? { fat: ov.fat }   : {}
+      ov.cal   ? { cal: ov.cal }    : {},
+      ov.p     ? { p: ov.p }        : {},
+      ov.fiber ? { fiber: ov.fiber } : {},
+      ov.c     ? { c: ov.c }        : {},
+      ov.fat   ? { fat: ov.fat }    : {}
     );
   }
-
-  const weightKg  = profile.weightLbs * 0.453592;
-  const heightCm  = ((profile.heightFt || 5) * 12 + (profile.heightIn || 10)) * 2.54;
-  const age       = profile.age || 35;
-  const bmr       = 10 * weightKg + 6.25 * heightCm - 5 * age + 5; // male
+  const weightKg   = profile.weightLbs * 0.453592;
+  const heightCm   = ((profile.heightFt || 5) * 12 + (profile.heightIn || 10)) * 2.54;
+  const age        = profile.age || 35;
+  const bmr        = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
   const multiplier = ACTIVITY_MULTIPLIERS[profile.activityLevel] || 1.55;
-  const tdee      = Math.round(bmr * multiplier);
-
-  // Macro splits: protein 30%, carbs 40%, fat 30%
-  // protein & carbs = 4 kcal/g, fat = 9 kcal/g
-  const calGoal   = tdee;
-  const pGoal     = Math.round((tdee * 0.30) / 4);
-  const cGoal     = Math.round((tdee * 0.40) / 4);
-  const fatGoal   = Math.round((tdee * 0.30) / 9);
-  const fiberGoal = Math.round(tdee / 1000 * 14);
-
+  const tdee       = Math.round(bmr * multiplier);
   return {
-    cal:   ov.cal   || calGoal,
-    p:     ov.p     || pGoal,
-    fiber: ov.fiber || fiberGoal,
-    c:     ov.c     || cGoal,
-    fat:   ov.fat   || fatGoal,
+    cal:   ov.cal   || tdee,
+    p:     ov.p     || Math.round((tdee * 0.30) / 4),
+    c:     ov.c     || Math.round((tdee * 0.40) / 4),
+    fat:   ov.fat   || Math.round((tdee * 0.30) / 9),
+    fiber: ov.fiber || Math.round(tdee / 1000 * 14),
   };
 }
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function loadProfile() {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; }
-  catch { return null; }
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; } catch { return null; }
 }
-function saveProfileData(p) {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
-}
+function saveProfileData(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
 function getProfile() { return loadProfile(); }
-
 function loadOverrides() {
-  try { return JSON.parse(localStorage.getItem(OVERRIDES_KEY)) || {}; }
-  catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(OVERRIDES_KEY)) || {}; } catch { return {}; }
 }
-function saveOverridesData(ov) {
-  localStorage.setItem(OVERRIDES_KEY, JSON.stringify(ov));
-}
+function saveOverridesData(ov) { localStorage.setItem(OVERRIDES_KEY, JSON.stringify(ov)); }
 
 function populateProfileForm(p) {
   if (!p) return;
-  document.getElementById('prof-name').value       = p.name || '';
-  document.getElementById('prof-age').value        = p.age || '';
-  document.getElementById('prof-weight').value     = p.weightLbs || '';
-  document.getElementById('prof-height-ft').value  = p.heightFt || '';
-  document.getElementById('prof-height-in').value  = p.heightIn || '';
-  document.getElementById('prof-activity').value   = p.activityLevel || 'Moderately Active';
-  // Populate override fields with current values (calculated as placeholders)
+  document.getElementById('prof-name').value      = p.name || '';
+  document.getElementById('prof-age').value       = p.age || '';
+  document.getElementById('prof-weight').value    = p.weightLbs || '';
+  document.getElementById('prof-height-ft').value = p.heightFt || '';
+  document.getElementById('prof-height-in').value = p.heightIn || '';
+  document.getElementById('prof-activity').value  = p.activityLevel || 'Moderately Active';
   const goals = calcGoals(p);
   document.getElementById('override-cal').placeholder   = goals.cal;
   document.getElementById('override-p').placeholder     = goals.p;
   document.getElementById('override-c').placeholder     = goals.c;
   document.getElementById('override-f').placeholder     = goals.fat;
   document.getElementById('override-fiber').placeholder = goals.fiber;
-  // Fill in saved overrides if any
   const ov = loadOverrides();
   document.getElementById('override-cal').value   = ov.cal   || '';
   document.getElementById('override-p').value     = ov.p     || '';
@@ -833,25 +923,18 @@ function populateProfileForm(p) {
 
 function updateProfileDisplay(p) {
   if (!p) return;
-  const nameEl  = document.getElementById('profile-display-name');
-  const subEl   = document.getElementById('profile-display-sub');
-  const titleEl = document.getElementById('welcome-title');
   if (p.name) {
-    nameEl.textContent  = p.name;
-    titleEl.textContent = `Hey ${p.name} 👋`;
+    document.getElementById('profile-display-name').textContent = p.name;
+    document.getElementById('welcome-title').textContent = `Hey ${p.name} 👋`;
   }
   const parts = [];
   if (p.weightLbs) parts.push(`${p.weightLbs} lbs`);
   if (p.heightFt)  parts.push(`${p.heightFt}'${p.heightIn || 0}"`);
   if (p.activityLevel) parts.push(p.activityLevel);
-  subEl.textContent = parts.length ? parts.join(' · ') : 'Set up your profile for accurate tracking';
-  const btn = document.getElementById('header-profile-btn');
-  btn.classList.toggle('has-profile', !!p.name || !!p.weightLbs);
-
-  // Update goals summary strip in profile header
+  document.getElementById('profile-display-sub').textContent = parts.length ? parts.join(' · ') : 'Set up your profile for accurate tracking';
+  document.getElementById('header-profile-btn').classList.toggle('has-profile', !!p.name || !!p.weightLbs);
   const goals = calcGoals(p);
-  const gsd = document.getElementById('goals-summary-display');
-  gsd.style.display = '';
+  document.getElementById('goals-summary-display').style.display = '';
   document.getElementById('gs-cal').textContent   = goals.cal;
   document.getElementById('gs-p').textContent     = goals.p+'g';
   document.getElementById('gs-fiber').textContent = goals.fiber+'g';
@@ -868,34 +951,28 @@ function saveProfile() {
     heightIn:      parseInt(document.getElementById('prof-height-in').value) || 0,
     activityLevel: document.getElementById('prof-activity').value,
   };
-  saveProfileData(p);
-  updateProfileDisplay(p);
-  populateProfileForm(p);
-  const banner = document.getElementById('profile-saved-banner');
-  banner.style.display = 'block';
-  setTimeout(() => { banner.style.display = 'none'; }, 2500);
+  saveProfileData(p); updateProfileDisplay(p); populateProfileForm(p);
+  const b = document.getElementById('profile-saved-banner');
+  b.style.display = 'block'; setTimeout(() => { b.style.display = 'none'; }, 2500);
 }
 
 function saveGoalOverrides() {
   const ov = {
-    cal:   parseInt(document.getElementById('override-cal').value) || null,
-    p:     parseInt(document.getElementById('override-p').value)   || null,
-    c:     parseInt(document.getElementById('override-c').value)   || null,
-    fat:   parseInt(document.getElementById('override-f').value)   || null,
-    fiber: parseInt(document.getElementById('override-fiber').value)|| null,
+    cal:   parseInt(document.getElementById('override-cal').value)   || null,
+    p:     parseInt(document.getElementById('override-p').value)     || null,
+    c:     parseInt(document.getElementById('override-c').value)     || null,
+    fat:   parseInt(document.getElementById('override-f').value)     || null,
+    fiber: parseInt(document.getElementById('override-fiber').value) || null,
   };
-  // Remove nulls so calcGoals falls back to computed values cleanly
   Object.keys(ov).forEach(k => { if (!ov[k]) delete ov[k]; });
-  saveOverridesData(ov);
-  updateProfileDisplay(getProfile());
-  const banner = document.getElementById('override-saved-banner');
-  banner.style.display = 'block';
-  setTimeout(() => { banner.style.display = 'none'; }, 2500);
+  saveOverridesData(ov); updateProfileDisplay(getProfile());
+  const b = document.getElementById('override-saved-banner');
+  b.style.display = 'block'; setTimeout(() => { b.style.display = 'none'; }, 2500);
 }
 
 function toggleGoalOverrides() {
-  const card = document.getElementById('goal-overrides-card');
-  card.style.display = card.style.display === 'none' ? '' : 'none';
+  const c = document.getElementById('goal-overrides-card');
+  c.style.display = c.style.display === 'none' ? '' : 'none';
 }
 
 function saveProfileFromModal() {
@@ -907,34 +984,21 @@ function saveProfileFromModal() {
     heightIn:      parseInt(document.getElementById('modal-height-in').value) || 0,
     activityLevel: document.getElementById('modal-activity').value,
   };
-  saveProfileData(p);
-  updateProfileDisplay(p);
-  populateProfileForm(p);
-  dismissModal();
+  saveProfileData(p); updateProfileDisplay(p); populateProfileForm(p); dismissModal();
 }
-
-function dismissModal() {
-  document.getElementById('profile-modal').classList.add('hidden');
-}
+function dismissModal() { document.getElementById('profile-modal').classList.add('hidden'); }
 
 // ─── STATE & 2-WEEK PERSISTENCE ───────────────────────────────────────────────
 const MAX_DAYS = 14;
-
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { entries: [], messages: [] }; }
   catch { return { entries: [], messages: [] }; }
 }
-function saveState() {
-  pruneOldEntries();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
+function saveState() { pruneOldEntries(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function pruneOldEntries() {
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - MAX_DAYS);
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - MAX_DAYS);
   const cutoffKey = cutoff.toISOString().slice(0,10);
   state.entries = (state.entries || []).filter(e => e.date >= cutoffKey);
-  // Keep messages only for today to keep storage lean
   const today = todayKey();
   state.messages = (state.messages || []).filter(m => m.ts && m.ts.slice(0,10) === today);
 }
@@ -945,10 +1009,8 @@ let currentFilter = 'all';
 // ─── DATE HELPERS ─────────────────────────────────────────────────────────────
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function formatTime(iso) {
-  const d = new Date(iso);
-  let h = d.getHours(), m = d.getMinutes();
-  const ap = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
+  const d = new Date(iso); let h = d.getHours(), m = d.getMinutes();
+  const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
   return `${h}:${m.toString().padStart(2,'0')} ${ap}`;
 }
 function formatDateLabel(key) {
@@ -958,12 +1020,48 @@ function formatDateLabel(key) {
   if (key === yesterday) return 'Yesterday';
   return new Date(key+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
-
 function updateHeaderDate() {
   document.getElementById('header-date').textContent =
     new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 updateHeaderDate();
+
+// ─── DAY NAVIGATION ───────────────────────────────────────────────────────────
+let viewedDateOffset = 0; // 0=today, -1=yesterday, etc.
+
+function getViewedDateKey() {
+  const d = new Date(); d.setDate(d.getDate() + viewedDateOffset);
+  return d.toISOString().slice(0,10);
+}
+
+function navigateDay(dir) {
+  const next = viewedDateOffset + dir;
+  if (next > 0) return;
+  if (next < -MAX_DAYS) return;
+  viewedDateOffset = next;
+  renderToday();
+}
+
+function getOldestEntryOffset() {
+  if (!state.entries || !state.entries.length) return 0;
+  const today = todayKey();
+  const oldest = state.entries.reduce((min, e) => e.date < min ? e.date : min, today);
+  const diffMs = new Date(today+'T00:00:00') - new Date(oldest+'T00:00:00');
+  return -Math.round(diffMs / 86400000);
+}
+
+function updateDayNav() {
+  const key = getViewedDateKey();
+  const label   = document.getElementById('day-nav-label');
+  const prevBtn = document.getElementById('day-prev-btn');
+  const nextBtn = document.getElementById('day-next-btn');
+  label.textContent = formatDateLabel(key);
+  label.className = 'day-nav-label' + (viewedDateOffset === 0 ? ' is-today' : '');
+  prevBtn.disabled = viewedDateOffset <= Math.max(getOldestEntryOffset(), -MAX_DAYS);
+  nextBtn.disabled = viewedDateOffset >= 0;
+  document.getElementById('today-section-label').textContent =
+    viewedDateOffset === 0 ? 'Daily overview' : `Overview — ${formatDateLabel(key)}`;
+}
 
 // ─── VIEW SWITCHING ───────────────────────────────────────────────────────────
 function switchView(name) {
@@ -971,9 +1069,28 @@ function switchView(name) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelector(`.nav-tab[data-view="${name}"]`).classList.add('active');
-  if (name === 'today')   renderToday();
+  if (name === 'today')   { viewedDateOffset = 0; renderToday(); }
   if (name === 'log')     renderLog();
   if (name === 'profile') populateProfileForm(getProfile());
+}
+
+// ─── RECENT MEALS ─────────────────────────────────────────────────────────────
+function buildRecentMeals() {
+  const food = (state.entries || []).filter(e => e.type === 'food')
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+  const seen = new Set(); const unique = [];
+  for (const e of food) {
+    const k = e.name.toLowerCase().trim();
+    if (!seen.has(k)) { seen.add(k); unique.push(e); }
+    if (unique.length >= 5) break;
+  }
+  const section = document.getElementById('recent-meals-section');
+  const row     = document.getElementById('recent-meals-row');
+  if (!unique.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  row.innerHTML = unique.map(e =>
+    `<div class="recent-chip" onclick="fillInput('${e.name.replace(/'/g,"\\'")}')">↩ ${e.name}</div>`
+  ).join('');
 }
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────
@@ -993,31 +1110,18 @@ chatInput.addEventListener('keydown', e => {
 sendBtn.addEventListener('click', sendMessage);
 
 function fillInput(text) {
-  chatInput.value = text;
-  chatInput.dispatchEvent(new Event('input'));
-  chatInput.focus();
+  chatInput.value = text; chatInput.dispatchEvent(new Event('input')); chatInput.focus();
 }
 
-// Detect if input looks like activity
 const ACTIVITY_KWS = ['walk','run','ran','jog','workout','bike','rode','gym','yoga','swim','lift','yardwork','mow','hike','hiked','elliptical','treadmill','cycling','played','tennis','basketball','golf','soccer','exercise'];
-function looksLikeActivity(text) {
-  const l = text.toLowerCase();
-  return ACTIVITY_KWS.some(k => l.includes(k));
-}
+function looksLikeActivity(t) { return ACTIVITY_KWS.some(k => t.toLowerCase().includes(k)); }
 
-const SUMMARY_KWS = ['what did i eat','today\'s summary','show me today','how much','my totals','what have i','summary','daily total','how many calories','what i ate'];
-function looksLikeSummary(text) {
-  const l = text.toLowerCase();
-  return SUMMARY_KWS.some(k => l.includes(k));
-}
+const SUMMARY_KWS = ["what did i eat","today's summary","show me today","how much","my totals","what have i","summary","daily total","how many calories","what i ate"];
+function looksLikeSummary(t) { return SUMMARY_KWS.some(k => t.toLowerCase().includes(k)); }
 
-const WEEKLY_KWS = ['how was my week','weekly summary','this week','week summary','last 7 days','past week','weekly report','week\'s summary'];
-function looksLikeWeekly(text) {
-  const l = text.toLowerCase();
-  return WEEKLY_KWS.some(k => l.includes(k));
-}
+const WEEKLY_KWS = ["how was my week","weekly summary","this week","week summary","last 7 days","past week","weekly report","week's summary"];
+function looksLikeWeekly(t) { return WEEKLY_KWS.some(k => t.toLowerCase().includes(k)); }
 
-// Edit state
 let editingEntryId = null;
 
 function startEdit(id) {
@@ -1033,27 +1137,21 @@ function startEdit(id) {
 }
 
 function cancelEdit() {
-  editingEntryId = null;
-  chatInput.value = '';
+  editingEntryId = null; chatInput.value = '';
   chatInput.dispatchEvent(new Event('input'));
   document.getElementById('edit-banner').style.display = 'none';
 }
 
 function deleteEntry(id) {
   state.entries = state.entries.filter(e => e.id !== id);
-  saveState();
-  renderLog();
-  renderToday();
+  saveState(); renderLog(); renderToday();
 }
 
 function clearToday() {
-  const today = todayKey();
-  state.entries = state.entries.filter(e => e.date !== today);
-  saveState();
-  renderLog();
-  renderToday();
-  appendBubble('ai', 'Today\'s log has been cleared.');
-  saveMessage('ai', 'Today\'s log has been cleared.');
+  state.entries = state.entries.filter(e => e.date !== todayKey());
+  saveState(); renderLog(); renderToday();
+  appendBubble('ai', "Today's log has been cleared.");
+  saveMessage('ai', "Today's log has been cleared.");
 }
 
 // ─── DAILY SUMMARY ────────────────────────────────────────────────────────────
@@ -1061,13 +1159,10 @@ function handleSummaryRequest() {
   const today    = todayKey();
   const food     = (state.entries||[]).filter(e => e.date === today && e.type === 'food');
   const activity = (state.entries||[]).filter(e => e.date === today && e.type === 'activity');
-
   if (!food.length && !activity.length) {
-    appendBubble('ai', "Nothing logged yet today. Tell me what you ate to get started.");
-    saveMessage('ai', "Nothing logged yet today. Tell me what you ate to get started.");
-    return;
+    const msg = "Nothing logged yet today. Tell me what you ate to get started.";
+    appendBubble('ai', msg); saveMessage('ai', msg); return;
   }
-
   const totCal    = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
   const totP      = food.reduce((s,e) => s+(e.macros?.p||0), 0);
   const totFiber  = food.reduce((s,e) => s+(e.macros?.fiber||0), 0);
@@ -1076,104 +1171,68 @@ function handleSummaryRequest() {
   const totBurned = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
   const netCal    = totCal - totBurned;
   const goals     = calcGoals(getProfile());
-
   const foodLines = food.map(e => `• ${e.name} (${e.macros?.cal||0} kcal)`).join('\n');
   const actLines  = activity.length ? '\n\nActivity:\n' + activity.map(e => `• ${e.name} — ${Math.abs(e.cal)} kcal burned`).join('\n') : '';
   const netLine   = totBurned ? `\n\nNet: ${netCal} kcal (${totCal} consumed − ${totBurned} burned) vs ${goals.cal} goal` : '';
-
   let reply = `Here's your day so far — ${food.length} meal${food.length!==1?'s':''} logged`;
   if (totBurned) reply += `, ${totBurned} kcal burned`;
   reply += `:\n\n${foodLines}${actLines}${netLine}`;
-
-  const macros = { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF };
-  appendBubble('ai', reply, macros);
-  saveMessage('ai', reply, macros);
+  appendBubble('ai', reply, { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF });
+  saveMessage('ai', reply, { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF });
 }
 
 // ─── WEEKLY SUMMARY ───────────────────────────────────────────────────────────
 function handleWeeklySummary() {
-  const today  = todayKey();
-  const days   = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86400000);
-    days.push(d.toISOString().slice(0,10));
-  }
-
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(Date.now()-i*86400000); days.push(d.toISOString().slice(0,10)); }
   const goals = calcGoals(getProfile());
-
-  // Build per-day stats
   const dayStats = days.map(date => {
     const food     = (state.entries||[]).filter(e => e.date === date && e.type === 'food');
     const activity = (state.entries||[]).filter(e => e.date === date && e.type === 'activity');
-    const cal      = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
-    const p        = food.reduce((s,e) => s+(e.macros?.p||0), 0);
-    const burned   = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
-    return { date, cal, p, burned, foodCount: food.length, actCount: activity.length };
+    return {
+      date,
+      cal:       food.reduce((s,e) => s+(e.macros?.cal||0), 0),
+      p:         food.reduce((s,e) => s+(e.macros?.p||0), 0),
+      burned:    activity.reduce((s,e) => s+Math.abs(e.cal||0), 0),
+      foodCount: food.length, actCount: activity.length
+    };
   });
-
   const loggedDays   = dayStats.filter(d => d.foodCount > 0);
   const totalActDays = dayStats.filter(d => d.actCount > 0).length;
-
   if (!loggedDays.length) {
     const msg = "No food logged in the past 7 days. Start logging meals to see weekly summaries!";
-    appendBubble('ai', msg);
-    saveMessage('ai', msg);
-    return;
+    appendBubble('ai', msg); saveMessage('ai', msg); return;
   }
-
-  const avgCal  = Math.round(loggedDays.reduce((s,d) => s+d.cal, 0) / loggedDays.length);
-  const avgP    = Math.round(loggedDays.reduce((s,d) => s+d.p, 0)   / loggedDays.length);
+  const avgCal  = Math.round(loggedDays.reduce((s,d) => s+d.cal,0) / loggedDays.length);
+  const avgP    = Math.round(loggedDays.reduce((s,d) => s+d.p,0)   / loggedDays.length);
   const totBurn = dayStats.reduce((s,d) => s+d.burned, 0);
-  const best    = [...loggedDays].sort((a,b) => {
-    // "best" = closest to goal without going over, or lowest if all over
-    const aDiff = Math.abs(a.cal - goals.cal);
-    const bDiff = Math.abs(b.cal - goals.cal);
-    return aDiff - bDiff;
-  })[0];
-  const highest = [...loggedDays].sort((a,b) => b.cal - a.cal)[0];
-  const lowest  = [...loggedDays].sort((a,b) => a.cal - b.cal)[0];
-
+  const best    = [...loggedDays].sort((a,b) => Math.abs(a.cal-goals.cal)-Math.abs(b.cal-goals.cal))[0];
+  const highest = [...loggedDays].sort((a,b) => b.cal-a.cal)[0];
+  const lowest  = [...loggedDays].sort((a,b) => a.cal-b.cal)[0];
   const calStatus = avgCal <= goals.cal
     ? `${avgCal} avg — under your ${goals.cal} goal 🟢`
-    : `${avgCal} avg — ${avgCal - goals.cal} over your ${goals.cal} goal 🔴`;
-
+    : `${avgCal} avg — ${avgCal-goals.cal} over your ${goals.cal} goal 🔴`;
   let reply = `📅 Weekly Summary (${loggedDays.length}/7 days logged)\n\n`;
-  reply += `Calories: ${calStatus}\n`;
-  reply += `Avg Protein: ${avgP}g (goal: ${goals.p}g)\n`;
+  reply += `Calories: ${calStatus}\nAvg Protein: ${avgP}g (goal: ${goals.p}g)\n`;
   if (totBurn) reply += `Total Burned: ${totBurn} kcal across ${totalActDays} active day${totalActDays!==1?'s':''}\n`;
   reply += `\nBest day: ${formatDateLabel(best.date)} (${best.cal} kcal)`;
   reply += `\nHighest: ${formatDateLabel(highest.date)} (${highest.cal} kcal)`;
   if (highest.date !== lowest.date) reply += `\nLowest: ${formatDateLabel(lowest.date)} (${lowest.cal} kcal)`;
-
-  appendBubble('ai', reply);
-  saveMessage('ai', reply);
+  appendBubble('ai', reply); saveMessage('ai', reply);
 }
 
 // ─── SEND MESSAGE ─────────────────────────────────────────────────────────────
 async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
-
   hideWelcome();
-  appendBubble('user', text);
-  saveMessage('user', text);
-  chatInput.value = '';
-  chatInput.style.height = 'auto';
-  sendBtn.disabled = true;
+  appendBubble('user', text); saveMessage('user', text);
+  chatInput.value = ''; chatInput.style.height = 'auto'; sendBtn.disabled = true;
 
-  // Handle weekly summary client-side
-  if (!editingEntryId && looksLikeWeekly(text)) {
-    handleWeeklySummary();
-    sendBtn.disabled = false;
-    return;
-  }
-
-  // Handle daily summary client-side
+  if (!editingEntryId && looksLikeWeekly(text))  { handleWeeklySummary();  sendBtn.disabled = false; return; }
   if (!editingEntryId && looksLikeSummary(text)) {
     document.getElementById('edit-banner').style.display = 'none';
-    handleSummaryRequest();
-    sendBtn.disabled = false;
-    return;
+    handleSummaryRequest(); sendBtn.disabled = false; return;
   }
 
   const typingRow  = appendTyping();
@@ -1199,60 +1258,52 @@ async function sendMessage() {
 
     if (isActivity) {
       const entry = {
-        id: isEditing ? editingEntryId : Date.now(),
-        type: 'activity', name: parsed.desc, cal: parsed.cal,
-        duration: parsed.duration, met: parsed.met, notes: parsed.notes,
-        ts: new Date().toISOString(), date: todayKey()
+        id: isEditing ? editingEntryId : Date.now(), type: 'activity',
+        name: parsed.desc, cal: parsed.cal, duration: parsed.duration,
+        met: parsed.met, notes: parsed.notes, ts: new Date().toISOString(), date: todayKey()
       };
-      if (isEditing) { state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e); }
-      else { state.entries.push(entry); }
+      if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
+      else state.entries.push(entry);
       saveState();
-      const replyText = `${isEditing?'Updated':'Logged'}! Burned ~${parsed.cal} kcal${parsed.duration?` in ${parsed.duration} min`:''}.${parsed.notes?' '+parsed.notes:''}`;
-      appendBubble('ai', replyText, null, { cal: parsed.cal, duration: parsed.duration||'?' });
-      saveMessage('ai', replyText);
+      const rt = `${isEditing?'Updated':'Logged'}! Burned ~${parsed.cal} kcal${parsed.duration?` in ${parsed.duration} min`:''}.${parsed.notes?' '+parsed.notes:''}`;
+      appendBubble('ai', rt, null, { cal: parsed.cal, duration: parsed.duration||'?' });
+      saveMessage('ai', rt);
     } else {
       const entry = {
-        id: isEditing ? editingEntryId : Date.now(),
-        type: 'food', name: parsed.desc,
+        id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc,
         macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
         ts: new Date().toISOString(), date: todayKey()
       };
-      if (isEditing) { state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e); }
-      else { state.entries.push(entry); }
+      if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
+      else state.entries.push(entry);
       saveState();
-      const replyText = `${isEditing?'Updated':'Logged'} — ${parsed.desc}.${parsed.notes?' '+parsed.notes:''}`;
+      buildRecentMeals();
+      const rt = `${isEditing?'Updated':'Logged'} — ${parsed.desc}.${parsed.notes?' '+parsed.notes:''}`;
       const macros = { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat };
-      appendBubble('ai', replyText, macros);
-      saveMessage('ai', replyText, macros);
+      appendBubble('ai', rt, macros); saveMessage('ai', rt, macros);
     }
-
     cancelEdit();
-
   } catch(err) {
     typingRow.remove();
     const msg = err.message.includes('timeout') ? 'Request timed out — check your connection.' : `Something went wrong: ${err.message}`;
-    appendBubble('ai', msg); saveMessage('ai', msg);
-    cancelEdit();
+    appendBubble('ai', msg); saveMessage('ai', msg); cancelEdit();
   }
   sendBtn.disabled = false;
 }
 
-function hideWelcome() {
-  if (chatWelcome) chatWelcome.style.display = 'none';
-}
+function hideWelcome() { if (chatWelcome) chatWelcome.style.display = 'none'; }
 
 function appendBubble(role, text, macros = null, activityData = null) {
   const row = document.createElement('div');
   row.className = `bubble-row ${role}`;
   const avatar = document.createElement('div');
   avatar.className = 'bubble-avatar';
-  const profile = getProfile();
-  avatar.textContent = role === 'ai' ? 'N' : (profile?.name?.[0]?.toUpperCase() || 'D');
-  const wrap  = document.createElement('div');
+  const p = getProfile();
+  avatar.textContent = role === 'ai' ? 'N' : (p?.name?.[0]?.toUpperCase() || 'D');
+  const wrap = document.createElement('div');
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.textContent = text;
-
   if (macros) {
     const card = document.createElement('div');
     card.className = 'macro-card';
@@ -1264,7 +1315,6 @@ function appendBubble(role, text, macros = null, activityData = null) {
       <div class="macro-item"><div class="macro-val fat">${macros.f}g</div><div class="macro-label">fat</div></div>`;
     bubble.appendChild(card);
   }
-
   if (activityData) {
     const card = document.createElement('div');
     card.className = 'activity-card';
@@ -1273,16 +1323,12 @@ function appendBubble(role, text, macros = null, activityData = null) {
       <div class="macro-item"><div class="macro-val" style="color:var(--blue)">${activityData.duration} min</div><div class="macro-label">duration</div></div>`;
     bubble.appendChild(card);
   }
-
   const time = document.createElement('div');
   time.className = 'bubble-time';
   time.textContent = formatTime(new Date().toISOString());
-  wrap.appendChild(bubble);
-  wrap.appendChild(time);
-  row.appendChild(avatar);
-  row.appendChild(wrap);
-  chatMsgs.appendChild(row);
-  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  wrap.appendChild(bubble); wrap.appendChild(time);
+  row.appendChild(avatar); row.appendChild(wrap);
+  chatMsgs.appendChild(row); chatMsgs.scrollTop = chatMsgs.scrollHeight;
 }
 
 function appendTyping() {
@@ -1292,8 +1338,7 @@ function appendTyping() {
     <div class="bubble" style="padding:12px 16px;">
       <div class="typing-indicator"><span></span><span></span><span></span></div>
     </div>`;
-  chatMsgs.appendChild(row);
-  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  chatMsgs.appendChild(row); chatMsgs.scrollTop = chatMsgs.scrollHeight;
   return row;
 }
 
@@ -1312,8 +1357,8 @@ function restoreChat() {
 
 // ─── TODAY VIEW ───────────────────────────────────────────────────────────────
 function renderToday() {
-  const today   = todayKey();
-  const entries  = (state.entries || []).filter(e => e.date === today);
+  const dateKey  = getViewedDateKey();
+  const entries  = (state.entries || []).filter(e => e.date === dateKey);
   const food     = entries.filter(e => e.type === 'food');
   const activity = entries.filter(e => e.type === 'activity');
   const goals    = calcGoals(getProfile());
@@ -1326,41 +1371,42 @@ function renderToday() {
   const totBurned  = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
   const netCal     = totalCal - totBurned;
 
-  // Calorie ring
+  updateDayNav();
+
   document.getElementById('today-cal-val').textContent = totalCal;
   const circ = 207.3;
-  document.getElementById('cal-ring-fill').style.strokeDashoffset =
-    circ - (circ * Math.min(totalCal / goals.cal, 1));
+  document.getElementById('cal-ring-fill').style.strokeDashoffset = circ-(circ*Math.min(totalCal/goals.cal,1));
 
-  // Macros
-  document.getElementById('today-p').textContent        = totalP+'g';
-  document.getElementById('today-fiber').textContent    = totalFiber+'g';
-  document.getElementById('today-c').textContent        = totalC+'g';
-  document.getElementById('today-f').textContent        = totalF+'g';
-  document.getElementById('today-p-lbl').textContent    = `Protein / ${goals.p}g`;
-  document.getElementById('today-fiber-lbl').textContent= `Fiber / ${goals.fiber}g`;
-  document.getElementById('today-c-lbl').textContent    = `Carbs / ${goals.c}g`;
-  document.getElementById('today-f-lbl').textContent    = `Fat / ${goals.fat}g`;
+  document.getElementById('today-p').textContent     = totalP+'g';
+  document.getElementById('today-fiber').textContent = totalFiber+'g';
+  document.getElementById('today-c').textContent     = totalC+'g';
+  document.getElementById('today-f').textContent     = totalF+'g';
+
+  // "Xg left of Yg" labels
+  const pRem     = Math.max(goals.p - totalP, 0);
+  const fiberRem = Math.max(goals.fiber - totalFiber, 0);
+  const cRem     = Math.max(goals.c - totalC, 0);
+  const fatRem   = Math.max(goals.fat - totalF, 0);
+  document.getElementById('today-p-lbl').textContent     = pRem     ? `${pRem}g left of ${goals.p}g`        : `✓ ${goals.p}g`;
+  document.getElementById('today-fiber-lbl').textContent = fiberRem ? `${fiberRem}g left of ${goals.fiber}g` : `✓ ${goals.fiber}g`;
+  document.getElementById('today-c-lbl').textContent     = cRem     ? `${cRem}g left of ${goals.c}g`        : `✓ ${goals.c}g`;
+  document.getElementById('today-f-lbl').textContent     = fatRem   ? `${fatRem}g left of ${goals.fat}g`    : `✓ ${goals.fat}g`;
 
   document.getElementById('today-p-bar').style.width     = Math.min(totalP/goals.p*100,100)+'%';
   document.getElementById('today-fiber-bar').style.width = Math.min(totalFiber/goals.fiber*100,100)+'%';
   document.getElementById('today-c-bar').style.width     = Math.min(totalC/goals.c*100,100)+'%';
   document.getElementById('today-f-bar').style.width     = Math.min(totalF/goals.fat*100,100)+'%';
 
-  // Net calories strip — show only if activity logged
   const netStrip = document.getElementById('net-cal-strip');
   if (totBurned > 0) {
     netStrip.style.display = '';
     const netEl = document.getElementById('net-cal-value');
     netEl.textContent = netCal;
     netEl.className = 'net-cal-value ' + (netCal <= goals.cal ? 'under' : 'over');
-    document.getElementById('net-cal-detail').textContent = `${totalCal} consumed − ${totBurned} burned`;
+    document.getElementById('net-cal-detail').textContent     = `${totalCal} consumed − ${totBurned} burned`;
     document.getElementById('net-cal-goal-detail').textContent = `of ${goals.cal} kcal goal`;
-  } else {
-    netStrip.style.display = 'none';
-  }
+  } else { netStrip.style.display = 'none'; }
 
-  // Activity list
   const actSection = document.getElementById('today-activity-section');
   const actList    = document.getElementById('today-activity-list');
   if (activity.length) {
@@ -1375,11 +1421,8 @@ function renderToday() {
         <div class="activity-label">${e.name}</div>
         <div class="activity-cal">−${Math.abs(e.cal)} kcal</div>
       </div>`).join('');
-  } else {
-    actSection.style.display = 'none';
-  }
+  } else { actSection.style.display = 'none'; }
 
-  // Meals list
   const mealList = document.getElementById('today-meals-list');
   const empty    = document.getElementById('today-empty');
   if (food.length) {
@@ -1395,18 +1438,14 @@ function renderToday() {
           <div class="meal-entry-time">${formatTime(e.ts)}</div>
         </div>
       </div>`).join('');
-  } else {
-    empty.style.display = '';
-    mealList.innerHTML = '';
-  }
+  } else { empty.style.display = ''; mealList.innerHTML = ''; }
 }
 
 // ─── LOG VIEW ─────────────────────────────────────────────────────────────────
 function setFilter(btn, filter) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderLog();
+  btn.classList.add('active'); renderLog();
 }
 
 function renderLog() {
@@ -1416,9 +1455,7 @@ function renderLog() {
   const logList  = document.getElementById('log-list');
   const logEmpty = document.getElementById('log-empty');
   const clearBtn = document.getElementById('clear-day-btn');
-  const todayEntries = (state.entries||[]).filter(e => e.date === todayKey());
-  clearBtn.style.display = todayEntries.length ? '' : 'none';
-
+  clearBtn.style.display = (state.entries||[]).filter(e => e.date === todayKey()).length ? '' : 'none';
   if (!entries.length) { logList.innerHTML = ''; logEmpty.style.display = ''; return; }
   logEmpty.style.display = 'none';
   const groups = {};
@@ -1456,8 +1493,8 @@ if (!existingProfile) {
   updateProfileDisplay(existingProfile);
   populateProfileForm(existingProfile);
 }
-
 restoreChat();
+buildRecentMeals();
 renderLog();
 </script>
 </body>
