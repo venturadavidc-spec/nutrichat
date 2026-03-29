@@ -1400,57 +1400,74 @@ async function sendMessage() {
   }
   if (!editingEntryId && looksLikeWater(text)) { handleWaterLog(text); sendBtn.disabled = false; return; }
 
-  const typingRow  = appendTyping();
-  const profile    = getProfile();
-  const isActivity = looksLikeActivity(text);
-  const isEditing  = editingEntryId !== null;
+  const typingRow = appendTyping();
+  const profile   = getProfile();
+  const isEditing = editingEntryId !== null;
 
   try {
-    const endpoint = isActivity ? '/analyze-activity' : '/analyze';
-    const res = await fetch(endpoint, {
+    // Always try /analyze first; fall back to /analyze-activity if not food
+    const res = await fetch('/analyze', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, profile }),
       signal: AbortSignal.timeout(15000)
     });
     if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.message||`Server error ${res.status}`); }
     const parsed = await res.json();
+
+    if (parsed.error === 'not_food') {
+      // Retry as activity
+      const res2 = await fetch('/analyze-activity', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, profile }),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!res2.ok) { const err = await res2.json().catch(()=>({})); throw new Error(err.message||`Server error ${res2.status}`); }
+      const parsed2 = await res2.json();
+      typingRow.remove();
+
+      if (parsed2.error === 'not_activity') {
+        const msg = "I wasn't sure if that was food or activity — could you rephrase? For example: 'had a chicken sandwich' or 'walked for 30 minutes'.";
+        appendBubble('ai', msg); saveMessage('ai', msg); cancelEdit(); sendBtn.disabled = false; return;
+      }
+
+      const entry = {
+        id: isEditing ? editingEntryId : Date.now(), type: 'activity',
+        name: parsed2.desc, cal: parsed2.cal, duration: parsed2.duration,
+        met: parsed2.met, notes: parsed2.notes, ts: new Date().toISOString(), date: todayKey()
+      };
+      if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
+      else state.entries.push(entry);
+      saveState();
+      const rt = `${isEditing?'Updated':'Logged'}! Burned ~${parsed2.cal} kcal${parsed2.duration?` in ${parsed2.duration} min`:''}.${parsed2.notes?' '+parsed2.notes:''}`;
+      appendBubble('ai', rt, null, { cal: parsed2.cal, duration: parsed2.duration||'?' });
+      saveMessage('ai', rt);
+      cancelEdit(); sendBtn.disabled = false; return;
+    }
+
     typingRow.remove();
 
-    if (parsed.error === 'not_food' || parsed.error === 'not_activity') {
+    if (parsed.error) {
       appendBubble('ai', parsed.message); saveMessage('ai', parsed.message);
       cancelEdit(); sendBtn.disabled = false; return;
     }
 
-    if (isActivity) {
-      const entry = {
-        id: isEditing ? editingEntryId : Date.now(), type: 'activity',
-        name: parsed.desc, cal: parsed.cal, duration: parsed.duration,
-        met: parsed.met, notes: parsed.notes, ts: new Date().toISOString(), date: todayKey()
-      };
-      if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
-      else state.entries.push(entry);
-      saveState();
-      const rt = `${isEditing?'Updated':'Logged'}! Burned ~${parsed.cal} kcal${parsed.duration?` in ${parsed.duration} min`:''}.${parsed.notes?' '+parsed.notes:''}`;
-      appendBubble('ai', rt, null, { cal: parsed.cal, duration: parsed.duration||'?' });
-      saveMessage('ai', rt);
-    } else {
-      const entryTs = new Date().toISOString();
-      const entry = {
-        id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc,
-        macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
-        ts: entryTs, date: todayKey(),
-        mealTag: isEditing
-          ? (state.entries.find(e => e.id === editingEntryId)?.mealTag || getMealTag(entryTs))
-          : getMealTag(entryTs)
-      };
-      if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
-      else state.entries.push(entry);
-      saveState();
-      buildRecentMeals();
-      const rt = `${isEditing?'Updated':'Logged'} — ${parsed.desc}.${parsed.notes?' '+parsed.notes:''}`;
-      const macros = { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat };
-      appendBubble('ai', rt, macros); saveMessage('ai', rt, macros);
-    }
+    // It's food
+    const entryTs = new Date().toISOString();
+    const entry = {
+      id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc,
+      macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
+      ts: entryTs, date: todayKey(),
+      mealTag: isEditing
+        ? (state.entries.find(e => e.id === editingEntryId)?.mealTag || getMealTag(entryTs))
+        : getMealTag(entryTs)
+    };
+    if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
+    else state.entries.push(entry);
+    saveState();
+    buildRecentMeals();
+    const rt = `${isEditing?'Updated':'Logged'} — ${parsed.desc}.${parsed.notes?' '+parsed.notes:''}`;
+    const macros = { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat };
+    appendBubble('ai', rt, macros); saveMessage('ai', rt, macros);
     cancelEdit();
   } catch(err) {
     typingRow.remove();
