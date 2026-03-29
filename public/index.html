@@ -1114,7 +1114,10 @@ function fillInput(text) {
 }
 
 const ACTIVITY_KWS = ['walk','run','ran','jog','workout','bike','rode','gym','yoga','swim','lift','yardwork','mow','hike','hiked','elliptical','treadmill','cycling','played','tennis','basketball','golf','soccer','exercise'];
-function looksLikeActivity(t) { return ACTIVITY_KWS.some(k => t.toLowerCase().includes(k)); }
+function looksLikeActivity(t) {
+  const l = t.toLowerCase();
+  return ACTIVITY_KWS.some(k => new RegExp('\\b' + k + '\\b').test(l));
+}
 
 const SUMMARY_KWS = ["what did i eat","today's summary","show me today","how much","my totals","what have i","summary","daily total","how many calories","what i ate"];
 function looksLikeSummary(t) { return SUMMARY_KWS.some(k => t.toLowerCase().includes(k)); }
