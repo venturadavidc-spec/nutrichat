@@ -134,8 +134,11 @@
     .header-profile-btn.has-profile svg { color: var(--green); }
 
     /* ─── VIEWS ─── */
-    .view { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; flex-direction: column; }
+    .view { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; flex-direction: column; min-height: 0; }
     .view.active { display: flex; }
+    /* Today/Log/Profile scroll within their view — must be block-level, not flex column, so content height is natural */
+    #view-today, #view-log, #view-profile { display: none; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; flex-direction: unset; }
+    #view-today.active, #view-log.active, #view-profile.active { display: block; }
 
     /* ─── CHAT VIEW ─── */
     #view-chat { padding-bottom: 0; }
@@ -243,7 +246,8 @@
     @keyframes bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1);opacity:1} }
 
     /* ─── TODAY VIEW ─── */
-    #view-today { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
+    #view-today { padding: 16px; }
+    
     .section-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
 
     /* Day navigation */
@@ -325,7 +329,7 @@
     .empty-state-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
 
     /* ─── LOG VIEW ─── */
-    #view-log { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 0; }
+    #view-log { padding: 16px; }
     .log-filter-row {
       display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;
       padding-bottom: 2px; -ms-overflow-style: none; scrollbar-width: none;
@@ -355,7 +359,7 @@
     .log-entry-cal.activity { color: var(--blue); }
 
     /* ─── PROFILE VIEW ─── */
-    #view-profile { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; gap: 16px; }
+    #view-profile { padding: 16px; }
     .profile-header {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
