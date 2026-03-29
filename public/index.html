@@ -137,8 +137,8 @@
     .view { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; flex-direction: column; min-height: 0; }
     .view.active { display: flex; }
     /* Today/Log/Profile scroll within their view — must be block-level, not flex column, so content height is natural */
-    #view-today, #view-log, #view-profile { display: none; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; flex-direction: unset; }
-    #view-today.active, #view-log.active, #view-profile.active { display: block; }
+    #view-today, #view-log, #view-week, #view-profile { display: none; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; flex-direction: unset; }
+    #view-today.active, #view-log.active, #view-week.active, #view-profile.active { display: block; }
 
     /* ─── CHAT VIEW ─── */
     #view-chat { padding-bottom: 0; }
@@ -438,7 +438,7 @@
 
     /* ─── BOTTOM NAV ─── */
     #bottom-nav {
-      flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+      flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
       background: var(--surface); border-top: 1px solid var(--border);
       padding-bottom: var(--safe-bottom);
     }
@@ -512,6 +512,100 @@
       text-transform: uppercase; letter-spacing: 0.5px;
       background: var(--surface3); color: var(--text-muted);
     }
+
+    /* ─── WEEK VIEW ─── */
+    #view-week { padding: 16px; }
+    .week-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+    .week-title { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+    .week-range { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+    .week-days-badge { font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+
+    /* Bar chart */
+    .week-chart-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 10px;
+    }
+    .week-chart-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .week-bars { display: flex; gap: 6px; align-items: flex-end; height: 90px; }
+    .week-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; justify-content: flex-end; }
+    .week-bar-val { font-family: var(--mono); font-size: 9px; color: var(--text-muted); line-height: 1; min-height: 10px; }
+    .week-bar-track { width: 100%; background: var(--surface3); border-radius: 4px 4px 2px 2px; position: relative; overflow: hidden; }
+    .week-bar-fill { width: 100%; border-radius: 4px 4px 2px 2px; transition: height 0.4s ease; }
+    .week-bar-fill.good   { background: var(--green); }
+    .week-bar-fill.warn   { background: var(--amber); }
+    .week-bar-fill.over   { background: var(--coral); }
+    .week-bar-fill.empty  { background: var(--surface3); }
+    .week-bar-day { font-family: var(--mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 4px; }
+
+    /* Cal row */
+    .week-cal-row {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; display: flex; gap: 12px; margin-bottom: 10px;
+    }
+    .week-cal-cell { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .week-cal-cell + .week-cal-cell { border-left: 1px solid var(--border); padding-left: 12px; }
+    .week-cal-num { font-family: var(--mono); font-size: 26px; font-weight: 500; line-height: 1; }
+    .week-cal-num.positive { color: var(--green); }
+    .week-cal-num.negative { color: var(--coral); }
+    .week-cal-lbl { font-size: 12px; color: var(--text-dim); }
+    .week-cal-sub { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Macro grid */
+    .week-macro-grid {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 10px;
+    }
+    .week-macro-cell { display: flex; flex-direction: column; gap: 4px; }
+    .week-macro-val { font-family: var(--mono); font-size: 18px; font-weight: 500; line-height: 1; }
+    .week-macro-val.pro   { color: var(--blue); }
+    .week-macro-val.fiber { color: var(--teal); }
+    .week-macro-val.carb  { color: var(--amber); }
+    .week-macro-val.fat   { color: var(--coral); }
+    .week-macro-goal { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+    .week-macro-lbl { font-size: 11px; color: var(--text-dim); }
+    .week-macro-bar-track { height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+    .week-macro-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+    .week-macro-bar-fill.pro   { background: var(--blue); }
+    .week-macro-bar-fill.fiber { background: var(--teal); }
+    .week-macro-bar-fill.carb  { background: var(--amber); }
+    .week-macro-bar-fill.fat   { background: var(--coral); }
+
+    /* Activity + water row */
+    .week-stat-row {
+      display: flex; gap: 10px; margin-bottom: 10px;
+    }
+    .week-stat-card {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .week-stat-icon-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .week-stat-icon-row svg { width: 14px; height: 14px; }
+    .week-stat-icon-lbl { font-size: 12px; color: var(--text-dim); }
+    .week-stat-num { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+    .week-stat-num.blue { color: var(--blue); }
+    .week-stat-num.teal { color: var(--teal); }
+    .week-stat-sub { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+
+    /* Best/worst callout */
+    .week-callout-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .week-callout-card {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .week-callout-card.full { flex: unset; width: 100%; }
+    .week-callout-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+    .week-callout-day { font-size: 15px; font-weight: 600; color: var(--text); }
+    .week-callout-cal { font-family: var(--mono); font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+    /* "View full dashboard" button inside chat bubble */
+    .week-dashboard-btn {
+      display: inline-block; margin-top: 10px; padding: 7px 14px;
+      background: var(--green-glow); border: 1px solid var(--green-dim);
+      border-radius: var(--radius-sm); font-size: 13px; color: var(--green);
+      cursor: pointer; font-family: var(--font); transition: all 0.15s;
+    }
+    .week-dashboard-btn:active { background: var(--green); color: #0f1410; }
 
     /* Clear day button */
     .clear-day-btn {
@@ -716,6 +810,90 @@
     <button class="clear-day-btn" id="clear-day-btn" onclick="clearToday()" style="display:none;">Clear today's log</button>
   </div>
 
+  <!-- WEEK VIEW -->
+  <div class="view" id="view-week">
+    <div class="week-header">
+      <div class="week-title">This Week</div>
+      <div class="week-range" id="week-range"></div>
+    </div>
+    <div class="week-days-badge" id="week-days-badge"></div>
+
+    <!-- Bar chart -->
+    <div class="week-chart-card">
+      <div class="week-chart-label">Calories per day</div>
+      <div class="week-bars" id="week-bars"></div>
+    </div>
+
+    <!-- Consumed / Remaining -->
+    <div class="week-cal-row">
+      <div class="week-cal-cell">
+        <div class="week-cal-lbl">Consumed</div>
+        <div class="week-cal-num positive" id="week-consumed">0</div>
+        <div class="week-cal-sub" id="week-consumed-sub"></div>
+      </div>
+      <div class="week-cal-cell">
+        <div class="week-cal-lbl">Remaining</div>
+        <div class="week-cal-num" id="week-remaining">0</div>
+        <div class="week-cal-sub" id="week-remaining-sub"></div>
+      </div>
+    </div>
+
+    <!-- Macro grid -->
+    <div class="week-macro-grid">
+      <div class="week-macro-cell">
+        <div class="week-macro-lbl">Protein</div>
+        <div class="week-macro-val pro" id="wm-p">0g</div>
+        <div class="week-macro-goal" id="wm-p-goal"></div>
+        <div class="week-macro-bar-track"><div class="week-macro-bar-fill pro" id="wm-p-bar" style="width:0%"></div></div>
+      </div>
+      <div class="week-macro-cell">
+        <div class="week-macro-lbl">Fiber</div>
+        <div class="week-macro-val fiber" id="wm-fiber">0g</div>
+        <div class="week-macro-goal" id="wm-fiber-goal"></div>
+        <div class="week-macro-bar-track"><div class="week-macro-bar-fill fiber" id="wm-fiber-bar" style="width:0%"></div></div>
+      </div>
+      <div class="week-macro-cell">
+        <div class="week-macro-lbl">Carbs</div>
+        <div class="week-macro-val carb" id="wm-c">0g</div>
+        <div class="week-macro-goal" id="wm-c-goal"></div>
+        <div class="week-macro-bar-track"><div class="week-macro-bar-fill carb" id="wm-c-bar" style="width:0%"></div></div>
+      </div>
+      <div class="week-macro-cell">
+        <div class="week-macro-lbl">Fat</div>
+        <div class="week-macro-val fat" id="wm-f">0g</div>
+        <div class="week-macro-goal" id="wm-f-goal"></div>
+        <div class="week-macro-bar-track"><div class="week-macro-bar-fill fat" id="wm-f-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Activity + Water -->
+    <div class="week-stat-row">
+      <div class="week-stat-card">
+        <div class="week-stat-icon-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2"/><path d="M12 22V12m0 0l-3-4m3 4l3-4"/>
+          </svg>
+          <span class="week-stat-icon-lbl">Activity</span>
+        </div>
+        <div class="week-stat-num blue" id="week-burned">0</div>
+        <div class="week-stat-sub">kcal burned</div>
+      </div>
+      <div class="week-stat-card">
+        <div class="week-stat-icon-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6 10 4 14 4 17a8 8 0 0 0 16 0c0-3-2-7-8-15z"/>
+          </svg>
+          <span class="week-stat-icon-lbl">Water</span>
+        </div>
+        <div class="week-stat-num teal" id="week-water">0</div>
+        <div class="week-stat-sub" id="week-water-sub">oz / 448 oz goal</div>
+      </div>
+    </div>
+
+    <!-- Best / Most indulgent -->
+    <div class="week-callout-row" id="week-callout-row" style="display:none;"></div>
+  </div>
+
   <!-- PROFILE VIEW -->
   <div class="view" id="view-profile">
     <div class="profile-header">
@@ -899,6 +1077,16 @@
         <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
       </svg>
       <span class="nav-tab-label">Log</span>
+    </div>
+    <div class="nav-tab" data-view="week" onclick="switchView('week')">
+      <div class="nav-tab-pip"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="8" y1="14" x2="8.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/>
+        <line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+      </svg>
+      <span class="nav-tab-label">Week</span>
     </div>
     <div class="nav-tab" data-view="profile" onclick="switchView('profile')">
       <div class="nav-tab-pip"></div>
@@ -1178,6 +1366,7 @@ function switchView(name) {
   document.querySelector(`.nav-tab[data-view="${name}"]`).classList.add('active');
   if (name === 'today')   { viewedDateOffset = 0; renderToday(); }
   if (name === 'log')     renderLog();
+  if (name === 'week')    renderWeek();
   if (name === 'profile') populateProfileForm(getProfile());
 }
 
@@ -1283,7 +1472,7 @@ function looksLikeActivity(t) {
 const SUMMARY_KWS = ["what did i eat","today's summary","show me today","how much","my totals","what have i","summary","daily total","how many calories","what i ate"];
 function looksLikeSummary(t) { return SUMMARY_KWS.some(k => t.toLowerCase().includes(k)); }
 
-const WEEKLY_KWS = ["how was my week","weekly summary","this week","week summary","last 7 days","past week","weekly report","week's summary"];
+const WEEKLY_KWS = ["how was my week","weekly summary","this week","week summary","last 7 days","past week","weekly report","week's summary","how has my week been","how's my week","hows my week","week going","this week so far","week so far","weekly","my week","show my week","week report","week overview","week recap"];
 function looksLikeWeekly(t) { return WEEKLY_KWS.some(k => t.toLowerCase().includes(k)); }
 
 let editingEntryId = null;
@@ -1345,44 +1534,174 @@ function handleSummaryRequest() {
   saveMessage('ai', reply, { cal: totCal, p: totP, fiber: totFiber, c: totC, f: totF });
 }
 
-// ─── WEEKLY SUMMARY ───────────────────────────────────────────────────────────
-function handleWeeklySummary() {
+// ─── WEEKLY STATS HELPER ──────────────────────────────────────────────────────
+function getWeekDays() {
   const days = [];
   for (let i = 6; i >= 0; i--) { const d = new Date(Date.now()-i*86400000); days.push(d.toISOString().slice(0,10)); }
+  return days;
+}
+
+function getWeekStats() {
+  const days  = getWeekDays();
   const goals = calcGoals(getProfile());
   const dayStats = days.map(date => {
     const food     = (state.entries||[]).filter(e => e.date === date && e.type === 'food');
     const activity = (state.entries||[]).filter(e => e.date === date && e.type === 'activity');
+    const water    = (state.entries||[]).filter(e => e.date === date && e.type === 'water');
     return {
       date,
       cal:       food.reduce((s,e) => s+(e.macros?.cal||0), 0),
       p:         food.reduce((s,e) => s+(e.macros?.p||0), 0),
+      fiber:     food.reduce((s,e) => s+(e.macros?.fiber||0), 0),
+      c:         food.reduce((s,e) => s+(e.macros?.c||0), 0),
+      f:         food.reduce((s,e) => s+(e.macros?.f||0), 0),
       burned:    activity.reduce((s,e) => s+Math.abs(e.cal||0), 0),
-      foodCount: food.length, actCount: activity.length
+      water:     water.reduce((s,e) => s+(e.oz||0), 0),
+      foodCount: food.length,
     };
   });
-  const loggedDays   = dayStats.filter(d => d.foodCount > 0);
-  const totalActDays = dayStats.filter(d => d.actCount > 0).length;
+  return { days, dayStats, goals };
+}
+
+// ─── WEEKLY SUMMARY (chat bubble) ─────────────────────────────────────────────
+function handleWeeklySummary() {
+  const { days, dayStats, goals } = getWeekStats();
+  const loggedDays = dayStats.filter(d => d.foodCount > 0);
   if (!loggedDays.length) {
     const msg = "No food logged in the past 7 days. Start logging meals to see weekly summaries!";
     appendBubble('ai', msg); saveMessage('ai', msg); return;
   }
-  const avgCal  = Math.round(loggedDays.reduce((s,d) => s+d.cal,0) / loggedDays.length);
-  const avgP    = Math.round(loggedDays.reduce((s,d) => s+d.p,0)   / loggedDays.length);
-  const totBurn = dayStats.reduce((s,d) => s+d.burned, 0);
-  const best    = [...loggedDays].sort((a,b) => Math.abs(a.cal-goals.cal)-Math.abs(b.cal-goals.cal))[0];
-  const highest = [...loggedDays].sort((a,b) => b.cal-a.cal)[0];
-  const lowest  = [...loggedDays].sort((a,b) => a.cal-b.cal)[0];
-  const calStatus = avgCal <= goals.cal
-    ? `${avgCal} avg — under your ${goals.cal} goal 🟢`
-    : `${avgCal} avg — ${avgCal-goals.cal} over your ${goals.cal} goal 🔴`;
-  let reply = `📅 Weekly Summary (${loggedDays.length}/7 days logged)\n\n`;
-  reply += `Calories: ${calStatus}\nAvg Protein: ${avgP}g (goal: ${goals.p}g)\n`;
-  if (totBurn) reply += `Total Burned: ${totBurn} kcal across ${totalActDays} active day${totalActDays!==1?'s':''}\n`;
-  reply += `\nBest day: ${formatDateLabel(best.date)} (${best.cal} kcal)`;
-  reply += `\nHighest: ${formatDateLabel(highest.date)} (${highest.cal} kcal)`;
-  if (highest.date !== lowest.date) reply += `\nLowest: ${formatDateLabel(lowest.date)} (${lowest.cal} kcal)`;
-  appendBubble('ai', reply); saveMessage('ai', reply);
+  const totalCal   = loggedDays.reduce((s,d) => s+d.cal, 0);
+  const avgCal     = Math.round(totalCal / loggedDays.length);
+  const avgP       = Math.round(loggedDays.reduce((s,d) => s+d.p, 0) / loggedDays.length);
+  const weeklyGoal = goals.cal * 7;
+  const weeklyConsumed = dayStats.reduce((s,d) => s+d.cal, 0);
+  const diff       = weeklyConsumed - weeklyGoal;
+  const d0 = new Date(days[0]+'T12:00:00'), d6 = new Date(days[6]+'T12:00:00');
+  const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const rangeStr   = `${fmt(d0)} – ${fmt(d6)}`;
+  const statusLine = diff <= 0
+    ? `On track — ${Math.abs(diff).toLocaleString()} kcal under weekly goal`
+    : `${diff.toLocaleString()} kcal over weekly goal`;
+  const reply = `📅 Week of ${rangeStr} — ${loggedDays.length}/7 days logged\nAvg ${avgCal} kcal/day vs ${goals.cal} goal · ${avgP}g protein avg\n${statusLine}`;
+  const row = document.createElement('div');
+  row.className = 'bubble-row ai';
+  const avatar = document.createElement('div');
+  avatar.className = 'bubble-avatar'; avatar.textContent = 'N';
+  const wrap = document.createElement('div');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble'; bubble.textContent = reply;
+  const btn = document.createElement('div');
+  btn.className = 'week-dashboard-btn'; btn.textContent = 'View full dashboard →';
+  btn.onclick = () => switchView('week');
+  bubble.appendChild(btn);
+  const time = document.createElement('div');
+  time.className = 'bubble-time'; time.textContent = formatTime(new Date().toISOString());
+  wrap.appendChild(bubble); wrap.appendChild(time);
+  row.appendChild(avatar); row.appendChild(wrap);
+  chatMsgs.appendChild(row); chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  saveMessage('ai', reply);
+}
+
+// ─── RENDER WEEK DASHBOARD ────────────────────────────────────────────────────
+function renderWeek() {
+  const { days, dayStats, goals } = getWeekStats();
+  const loggedDays = dayStats.filter(d => d.foodCount > 0);
+
+  // Header range
+  const d0 = new Date(days[0]+'T12:00:00'), d6 = new Date(days[6]+'T12:00:00');
+  const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('week-range').textContent = `${fmt(d0)} – ${fmt(d6)}`;
+  document.getElementById('week-days-badge').textContent = `${loggedDays.length} / 7 days logged`;
+
+  // Bar chart
+  const maxCal = Math.max(...dayStats.map(d => d.cal), 1);
+  const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('week-bars').innerHTML = dayStats.map(d => {
+    const pct   = Math.round((d.cal / maxCal) * 100);
+    const over  = d.cal > goals.cal * 1.10;
+    const warn  = !over && d.cal > goals.cal;
+    const cls   = d.cal === 0 ? 'empty' : over ? 'over' : warn ? 'warn' : 'good';
+    const label = d.cal > 0 ? d.cal : '';
+    const dayLbl = DAY_LABELS[new Date(d.date+'T12:00:00').getDay()];
+    const trackH = 70; // px, max bar height
+    const barH   = d.cal > 0 ? Math.max(Math.round(pct / 100 * trackH), 4) : 4;
+    return `<div class="week-bar-col">
+      <div class="week-bar-val">${label}</div>
+      <div class="week-bar-track" style="height:${trackH}px">
+        <div class="week-bar-fill ${cls}" style="height:${barH}px; margin-top:${trackH-barH}px"></div>
+      </div>
+      <div class="week-bar-day">${dayLbl}</div>
+    </div>`;
+  }).join('');
+
+  // Consumed / Remaining
+  const weeklyConsumed = dayStats.reduce((s,d) => s+d.cal, 0);
+  const weeklyGoal     = goals.cal * 7;
+  const weeklyRemaining = weeklyGoal - weeklyConsumed;
+  document.getElementById('week-consumed').textContent = weeklyConsumed.toLocaleString();
+  document.getElementById('week-consumed-sub').textContent = `of ${weeklyGoal.toLocaleString()} weekly goal`;
+  const remEl = document.getElementById('week-remaining');
+  remEl.textContent = Math.abs(weeklyRemaining).toLocaleString() + (weeklyRemaining < 0 ? ' over' : '');
+  remEl.className = 'week-cal-num ' + (weeklyRemaining >= 0 ? 'positive' : 'negative');
+  document.getElementById('week-remaining-sub').textContent = `of ${weeklyGoal.toLocaleString()} goal`;
+
+  // Macros
+  const totP     = dayStats.reduce((s,d) => s+d.p, 0);
+  const totFiber = dayStats.reduce((s,d) => s+d.fiber, 0);
+  const totC     = dayStats.reduce((s,d) => s+d.c, 0);
+  const totF     = dayStats.reduce((s,d) => s+d.f, 0);
+  const gP = goals.p * 7, gFiber = goals.fiber * 7, gC = goals.c * 7, gF = goals.fat * 7;
+  document.getElementById('wm-p').textContent     = totP+'g';
+  document.getElementById('wm-fiber').textContent = totFiber+'g';
+  document.getElementById('wm-c').textContent     = totC+'g';
+  document.getElementById('wm-f').textContent     = totF+'g';
+  document.getElementById('wm-p-goal').textContent     = `/ ${gP}g goal`;
+  document.getElementById('wm-fiber-goal').textContent = `/ ${gFiber}g goal`;
+  document.getElementById('wm-c-goal').textContent     = `/ ${gC}g goal`;
+  document.getElementById('wm-f-goal').textContent     = `/ ${gF}g goal`;
+  document.getElementById('wm-p-bar').style.width     = Math.min(totP/gP*100,100)+'%';
+  document.getElementById('wm-fiber-bar').style.width = Math.min(totFiber/gFiber*100,100)+'%';
+  document.getElementById('wm-c-bar').style.width     = Math.min(totC/gC*100,100)+'%';
+  document.getElementById('wm-f-bar').style.width     = Math.min(totF/gF*100,100)+'%';
+
+  // Activity + water
+  const totBurned = dayStats.reduce((s,d) => s+d.burned, 0);
+  const totWater  = dayStats.reduce((s,d) => s+d.water, 0);
+  const WEEKLY_WATER_GOAL = 64 * 7;
+  document.getElementById('week-burned').textContent   = totBurned.toLocaleString();
+  document.getElementById('week-water').textContent    = totWater;
+  document.getElementById('week-water-sub').textContent = `oz / ${WEEKLY_WATER_GOAL} oz goal`;
+
+  // Best / Most indulgent callout
+  const calloutRow = document.getElementById('week-callout-row');
+  if (loggedDays.length >= 2) {
+    calloutRow.style.display = 'flex';
+    const best     = [...loggedDays].sort((a,b) => Math.abs(a.cal-goals.cal)-Math.abs(b.cal-goals.cal))[0];
+    const highest  = [...loggedDays].sort((a,b) => b.cal-a.cal)[0];
+    const sameBest = best.date === highest.date;
+    if (sameBest) {
+      calloutRow.innerHTML = `<div class="week-callout-card full">
+        <div class="week-callout-lbl">Best day</div>
+        <div class="week-callout-day">${formatDateLabel(best.date)}</div>
+        <div class="week-callout-cal">${best.cal.toLocaleString()} kcal</div>
+      </div>`;
+    } else {
+      calloutRow.innerHTML = `
+        <div class="week-callout-card">
+          <div class="week-callout-lbl">Best day</div>
+          <div class="week-callout-day">${formatDateLabel(best.date)}</div>
+          <div class="week-callout-cal">${best.cal.toLocaleString()} kcal</div>
+        </div>
+        <div class="week-callout-card">
+          <div class="week-callout-lbl">Most indulgent</div>
+          <div class="week-callout-day">${formatDateLabel(highest.date)}</div>
+          <div class="week-callout-cal">${highest.cal.toLocaleString()} kcal</div>
+        </div>`;
+    }
+  } else {
+    calloutRow.style.display = 'none';
+  }
 }
 
 // ─── SEND MESSAGE ─────────────────────────────────────────────────────────────
