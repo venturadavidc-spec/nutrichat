@@ -520,7 +520,35 @@
     .week-range { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
     .week-days-badge { font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
 
-    /* Bar chart */
+    /* 14-day trend chart */
+    .trend-chart-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 10px;
+    }
+    .trend-chart-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .trend-goal-legend { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); }
+    .trend-goal-line-swatch { width: 14px; height: 2px; background: var(--border); border-radius: 1px; }
+    .trend-chart-area {
+      position: relative; height: 100px; display: flex; align-items: flex-end; gap: 3px;
+    }
+    .trend-goal-rule {
+      position: absolute; left: 0; right: 0; height: 1px;
+      background: var(--border); pointer-events: none; z-index: 1;
+    }
+    .trend-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0; position: relative; z-index: 2; }
+    .trend-bar-wrap { width: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+    .trend-bar {
+      width: 100%; min-height: 3px; border-radius: 3px 3px 1px 1px;
+      transition: height 0.4s ease;
+    }
+    .trend-bar.good  { background: var(--green); opacity: 0.85; }
+    .trend-bar.warn  { background: var(--amber); opacity: 0.85; }
+    .trend-bar.over  { background: var(--coral); opacity: 0.85; }
+    .trend-bar.empty { background: var(--surface3); min-height: 3px; }
+    .trend-bar-day { font-family: var(--mono); font-size: 8px; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; letter-spacing: 0.2px; }
+    .trend-bar-day.today { color: var(--green); font-weight: 600; }
+
+    /* Bar chart (7-day) */
     .week-chart-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 16px; margin-bottom: 10px;
@@ -817,6 +845,17 @@
       <div class="week-range" id="week-range"></div>
     </div>
     <div class="week-days-badge" id="week-days-badge"></div>
+
+    <!-- 14-day trend chart -->
+    <div class="trend-chart-card">
+      <div class="trend-chart-label">
+        <span>14-day calorie trend</span>
+        <span class="trend-goal-legend"><span class="trend-goal-line-swatch"></span>goal</span>
+      </div>
+      <div class="trend-chart-area" id="trend-chart-area">
+        <div class="trend-goal-rule" id="trend-goal-rule"></div>
+      </div>
+    </div>
 
     <!-- Bar chart -->
     <div class="week-chart-card">
@@ -1607,6 +1646,43 @@ function handleWeeklySummary() {
 function renderWeek() {
   const { days, dayStats, goals } = getWeekStats();
   const loggedDays = dayStats.filter(d => d.foodCount > 0);
+
+  // ── 14-day trend chart ──────────────────────────────────────────────────────
+  const DAY_SINGLE = ['S','M','T','W','T','F','S'];
+  const todayStr   = todayKey();
+  const trend14 = [];
+  for (let i = 13; i >= 0; i--) {
+    const d    = new Date(Date.now() - i * 86400000);
+    const key  = d.toISOString().slice(0, 10);
+    const food = (state.entries || []).filter(e => e.date === key && e.type === 'food');
+    trend14.push({ key, cal: food.reduce((s, e) => s + (e.macros?.cal || 0), 0), dow: d.getDay() });
+  }
+  const maxTrend = Math.max(...trend14.map(d => d.cal), goals.cal, 1);
+  const CHART_H  = 100; // px — must match CSS height of .trend-chart-area
+  // Goal line: position from bottom as % of maxTrend
+  const goalPct  = Math.min(goals.cal / maxTrend, 1);
+  const goalBottom = Math.round(goalPct * CHART_H); // px from bottom
+  const ruleEl   = document.getElementById('trend-goal-rule');
+  ruleEl.style.bottom = goalBottom + 'px';
+  ruleEl.style.top    = 'auto';
+
+  const chartArea = document.getElementById('trend-chart-area');
+  // Remove old bar cols (keep the rule element)
+  Array.from(chartArea.children).forEach(el => { if (!el.id) el.remove(); });
+  trend14.forEach(d => {
+    const barH  = d.cal > 0 ? Math.max(Math.round((d.cal / maxTrend) * CHART_H), 3) : 3;
+    const over  = d.cal > goals.cal * 1.15;
+    const warn  = !over && d.cal > goals.cal;
+    const cls   = d.cal === 0 ? 'empty' : over ? 'over' : warn ? 'warn' : 'good';
+    const isToday = d.key === todayStr;
+    const col   = document.createElement('div');
+    col.className = 'trend-bar-col';
+    col.innerHTML = `<div class="trend-bar-wrap" style="height:${CHART_H}px">
+        <div class="trend-bar ${cls}" style="height:${barH}px"></div>
+      </div>
+      <div class="trend-bar-day${isToday ? ' today' : ''}">${DAY_SINGLE[d.dow]}</div>`;
+    chartArea.appendChild(col);
+  });
 
   // Header range
   const d0 = new Date(days[0]+'T12:00:00'), d6 = new Date(days[6]+'T12:00:00');
