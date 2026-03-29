@@ -497,6 +497,22 @@
     .hydration-sub { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 5px; }
     .log-entry-dot.water { background: var(--teal); }
 
+    /* Meal tag grouping */
+    .meal-tag-section { margin-top: 12px; }
+    .meal-tag-section:first-child { margin-top: 0; }
+    .meal-tag-header {
+      font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .meal-tag-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .meal-tag-badge {
+      display: inline-block; font-family: var(--mono); font-size: 9px;
+      padding: 1px 6px; border-radius: 8px; margin-left: 6px; vertical-align: middle;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      background: var(--surface3); color: var(--text-muted);
+    }
+
     /* Clear day button */
     .clear-day-btn {
       width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-sm);
@@ -1105,6 +1121,18 @@ function updateHeaderDate() {
 }
 updateHeaderDate();
 
+// ─── MEAL TAGGING ─────────────────────────────────────────────────────────────
+const MEAL_TAG_ORDER = ['breakfast','lunch','snack','dinner'];
+const MEAL_TAG_LABELS = { breakfast: '🌅 Breakfast', lunch: '☀️ Lunch', snack: '🍎 Snack', dinner: '🌙 Dinner' };
+
+function getMealTag(ts) {
+  const h = new Date(ts).getHours();
+  if (h < 10) return 'breakfast';
+  if (h < 14) return 'lunch';
+  if (h < 17) return 'snack';
+  return 'dinner';
+}
+
 // ─── DAY NAVIGATION ───────────────────────────────────────────────────────────
 let viewedDateOffset = 0; // 0=today, -1=yesterday, etc.
 
@@ -1406,10 +1434,14 @@ async function sendMessage() {
       appendBubble('ai', rt, null, { cal: parsed.cal, duration: parsed.duration||'?' });
       saveMessage('ai', rt);
     } else {
+      const entryTs = new Date().toISOString();
       const entry = {
         id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc,
         macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
-        ts: new Date().toISOString(), date: todayKey()
+        ts: entryTs, date: todayKey(),
+        mealTag: isEditing
+          ? (state.entries.find(e => e.id === editingEntryId)?.mealTag || getMealTag(entryTs))
+          : getMealTag(entryTs)
       };
       if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
       else state.entries.push(entry);
@@ -1590,17 +1622,30 @@ function renderToday() {
   const empty    = document.getElementById('today-empty');
   if (food.length) {
     empty.style.display = 'none';
-    mealList.innerHTML = food.map(e => `
-      <div class="meal-entry">
-        <div class="meal-entry-left">
-          <div class="meal-entry-name">${e.name}</div>
-          <div class="meal-entry-macros">P ${e.macros?.p||0}g · Fiber ${e.macros?.fiber||0}g · C ${e.macros?.c||0}g · F ${e.macros?.f||0}g</div>
-        </div>
-        <div>
-          <div class="meal-entry-cal">${e.macros?.cal||0}<div class="meal-entry-cal-unit">kcal</div></div>
-          <div class="meal-entry-time">${formatTime(e.ts)}</div>
-        </div>
-      </div>`).join('');
+    // Group by meal tag
+    const groups = {};
+    food.forEach(e => {
+      const tag = e.mealTag || getMealTag(e.ts);
+      if (!groups[tag]) groups[tag] = [];
+      groups[tag].push(e);
+    });
+    mealList.innerHTML = MEAL_TAG_ORDER
+      .filter(tag => groups[tag])
+      .map(tag => `
+        <div class="meal-tag-section">
+          <div class="meal-tag-header">${MEAL_TAG_LABELS[tag]}</div>
+          ${groups[tag].map(e => `
+            <div class="meal-entry">
+              <div class="meal-entry-left">
+                <div class="meal-entry-name">${e.name}<span class="meal-tag-badge">${tag}</span></div>
+                <div class="meal-entry-macros">P ${e.macros?.p||0}g · Fiber ${e.macros?.fiber||0}g · C ${e.macros?.c||0}g · F ${e.macros?.f||0}g</div>
+              </div>
+              <div>
+                <div class="meal-entry-cal">${e.macros?.cal||0}<div class="meal-entry-cal-unit">kcal</div></div>
+                <div class="meal-entry-time">${formatTime(e.ts)}</div>
+              </div>
+            </div>`).join('')}
+        </div>`).join('');
   } else { empty.style.display = ''; mealList.innerHTML = ''; }
 }
 
