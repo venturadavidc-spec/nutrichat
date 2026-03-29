@@ -1274,7 +1274,7 @@ function fillInput(text) {
   chatInput.value = text; chatInput.dispatchEvent(new Event('input')); chatInput.focus();
 }
 
-const ACTIVITY_KWS = ['walk','run','ran','jog','workout','bike','rode','gym','yoga','swim','lift','yardwork','mow','hike','hiked','elliptical','treadmill','cycling','played','tennis','basketball','golf','soccer','exercise'];
+const ACTIVITY_KWS = ['walk','run','ran','jog','workout','bike','rode','gym','yoga','swim','lift','yardwork','mow','hike','hiked','elliptical','treadmill','cycling','played','tennis','basketball','golf','soccer','exercise','walked','walks','walking','running','runs','jogged','jogging','biked','biking','hiked','hiking','swam','swimming','lifted','worked out','exercised','mowed','steps','miles','laps','reps','sets','jumped','jumping','skipped','skipping','climbed','climbing','stretched','stretching','pilates','crossfit','rowing','rowed'];
 function looksLikeActivity(t) {
   const l = t.toLowerCase();
   return ACTIVITY_KWS.some(k => new RegExp('\\b' + k + '\\b').test(l));
