@@ -469,6 +469,30 @@
     .edit-mode-banner span { flex: 1; }
     .edit-cancel-btn { background: none; border: none; color: var(--amber); font-size: 13px; cursor: pointer; padding: 0; font-family: var(--font); }
 
+    /* Goal mode badge */
+    .goal-mode-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 500;
+      padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .goal-mode-badge.maintain { background: var(--green-glow);          color: var(--green); border: 1px solid var(--green-dim); }
+    .goal-mode-badge.cut      { background: rgba(245,158,11,0.12);       color: var(--amber); border: 1px solid var(--amber-dim); }
+    .goal-mode-badge.bulk     { background: var(--blue-glow);            color: var(--blue);  border: 1px solid var(--blue-dim); }
+
+    /* Water / hydration bar */
+    .hydration-strip {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .hydration-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .hydration-title { font-size: 14px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+    .hydration-title svg { width: 14px; height: 14px; color: var(--teal); }
+    .hydration-val { font-family: var(--mono); font-size: 14px; color: var(--teal); font-weight: 500; }
+    .hydration-bar-track { height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+    .hydration-bar-fill  { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.4s ease; }
+    .hydration-sub { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 5px; }
+    .log-entry-dot.water { background: var(--teal); }
+
     /* Clear day button */
     .clear-day-btn {
       width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-sm);
@@ -625,6 +649,23 @@
       </div>
     </div>
 
+    <!-- Hydration strip -->
+    <div class="hydration-strip" id="hydration-strip" style="display:none;">
+      <div class="hydration-header">
+        <div class="hydration-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6 10 4 14 4 17a8 8 0 0 0 16 0c0-3-2-7-8-15z"/>
+          </svg>
+          Water
+        </div>
+        <div class="hydration-val" id="hydration-val">0 oz</div>
+      </div>
+      <div class="hydration-bar-track">
+        <div class="hydration-bar-fill" id="hydration-bar-fill" style="width:0%"></div>
+      </div>
+      <div class="hydration-sub" id="hydration-sub">0 oz of 64 oz daily goal</div>
+    </div>
+
     <div id="today-activity-section" style="margin-top:0; display:none;">
       <div class="section-label">Activity</div>
       <div id="today-activity-list" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -645,6 +686,7 @@
       <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
       <button class="filter-btn" data-filter="food" onclick="setFilter(this,'food')">Food</button>
       <button class="filter-btn" data-filter="activity" onclick="setFilter(this,'activity')">Activity</button>
+      <button class="filter-btn" data-filter="water" onclick="setFilter(this,'water')">Water</button>
     </div>
     <div id="log-list"></div>
     <div class="empty-state" id="log-empty" style="display:none;">
@@ -706,6 +748,15 @@
             <option value="Slightly Active">Slightly Active (light exercise 1–2x/week)</option>
             <option value="Moderately Active" selected>Moderately Active (exercise 3–4x/week)</option>
             <option value="Active">Active (hard exercise 5+x/week)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Goal Mode</label>
+          <select class="form-select form-input" id="prof-goal-mode">
+            <option value="Maintain">Maintain weight (TDEE)</option>
+            <option value="Cut -250" selected>Cut – lose weight slowly (–250 kcal/day)</option>
+            <option value="Cut -500">Cut – lose weight faster (–500 kcal/day)</option>
+            <option value="Bulk +250">Bulk – build muscle (+250 kcal/day)</option>
           </select>
         </div>
         <button class="btn-save" onclick="saveProfile()">Save Profile</button>
@@ -787,6 +838,15 @@
             <option value="Active">Active</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Goal Mode</label>
+          <select class="form-select form-input" id="modal-goal-mode">
+            <option value="Maintain">Maintain weight</option>
+            <option value="Cut -250" selected>Cut – lose slowly (–250 kcal/day)</option>
+            <option value="Cut -500">Cut – lose faster (–500 kcal/day)</option>
+            <option value="Bulk +250">Bulk – build muscle (+250 kcal/day)</option>
+          </select>
+        </div>
         <button class="btn-save" onclick="saveProfileFromModal()">Let's go</button>
         <div style="text-align:center; padding-top:4px;">
           <span onclick="dismissModal()" style="font-size:13px; color:var(--text-muted); cursor:pointer;">Skip for now</span>
@@ -857,9 +917,12 @@ function toggleTheme() {
   applyTheme(saved || getSystemTheme());
 })();
 
-// ─── GOAL CALCULATION (Mifflin-St Jeor TDEE) ──────────────────────────────────
+// ─── GOAL CALCULATION (Mifflin-St Jeor TDEE + goal mode) ─────────────────────
 const ACTIVITY_MULTIPLIERS = {
   'Sedentary': 1.2, 'Slightly Active': 1.375, 'Moderately Active': 1.55, 'Active': 1.725,
+};
+const GOAL_MODE_OFFSETS = {
+  'Maintain': 0, 'Cut -250': -250, 'Cut -500': -500, 'Bulk +250': 250,
 };
 function calcGoals(profile) {
   const ov = loadOverrides();
@@ -879,12 +942,16 @@ function calcGoals(profile) {
   const bmr        = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
   const multiplier = ACTIVITY_MULTIPLIERS[profile.activityLevel] || 1.55;
   const tdee       = Math.round(bmr * multiplier);
+  const modeOffset = GOAL_MODE_OFFSETS[profile.goalMode] ?? 0;
+  const calTarget  = tdee + modeOffset;
   return {
-    cal:   ov.cal   || tdee,
-    p:     ov.p     || Math.round((tdee * 0.30) / 4),
-    c:     ov.c     || Math.round((tdee * 0.40) / 4),
-    fat:   ov.fat   || Math.round((tdee * 0.30) / 9),
-    fiber: ov.fiber || Math.round(tdee / 1000 * 14),
+    cal:      ov.cal   || calTarget,
+    p:        ov.p     || Math.round((calTarget * 0.30) / 4),
+    c:        ov.c     || Math.round((calTarget * 0.40) / 4),
+    fat:      ov.fat   || Math.round((calTarget * 0.30) / 9),
+    fiber:    ov.fiber || Math.round(calTarget / 1000 * 14),
+    goalMode: profile.goalMode || 'Maintain',
+    tdee,
   };
 }
 
@@ -907,6 +974,7 @@ function populateProfileForm(p) {
   document.getElementById('prof-height-ft').value = p.heightFt || '';
   document.getElementById('prof-height-in').value = p.heightIn || '';
   document.getElementById('prof-activity').value  = p.activityLevel || 'Moderately Active';
+  document.getElementById('prof-goal-mode').value = p.goalMode || 'Cut -250';
   const goals = calcGoals(p);
   document.getElementById('override-cal').placeholder   = goals.cal;
   document.getElementById('override-p').placeholder     = goals.p;
@@ -935,7 +1003,12 @@ function updateProfileDisplay(p) {
   document.getElementById('header-profile-btn').classList.toggle('has-profile', !!p.name || !!p.weightLbs);
   const goals = calcGoals(p);
   document.getElementById('goals-summary-display').style.display = '';
-  document.getElementById('gs-cal').textContent   = goals.cal;
+  // Cal target with mode badge
+  const modeLabels = { 'Maintain': 'maintain', 'Cut -250': 'cut –250', 'Cut -500': 'cut –500', 'Bulk +250': 'bulk +250' };
+  const modeCls    = { 'Maintain': 'maintain', 'Cut -250': 'cut', 'Cut -500': 'cut', 'Bulk +250': 'bulk' };
+  const mode       = p.goalMode || 'Maintain';
+  document.getElementById('gs-cal').innerHTML =
+    `${goals.cal}<span class="goal-mode-badge ${modeCls[mode] || 'maintain'}">${modeLabels[mode] || mode}</span>`;
   document.getElementById('gs-p').textContent     = goals.p+'g';
   document.getElementById('gs-fiber').textContent = goals.fiber+'g';
   document.getElementById('gs-c').textContent     = goals.c+'g';
@@ -950,6 +1023,7 @@ function saveProfile() {
     heightFt:      parseInt(document.getElementById('prof-height-ft').value) || null,
     heightIn:      parseInt(document.getElementById('prof-height-in').value) || 0,
     activityLevel: document.getElementById('prof-activity').value,
+    goalMode:      document.getElementById('prof-goal-mode').value,
   };
   saveProfileData(p); updateProfileDisplay(p); populateProfileForm(p);
   const b = document.getElementById('profile-saved-banner');
@@ -983,6 +1057,7 @@ function saveProfileFromModal() {
     heightFt:      parseInt(document.getElementById('modal-height-ft').value) || null,
     heightIn:      parseInt(document.getElementById('modal-height-in').value) || 0,
     activityLevel: document.getElementById('modal-activity').value,
+    goalMode:      document.getElementById('modal-goal-mode').value,
   };
   saveProfileData(p); updateProfileDisplay(p); populateProfileForm(p); dismissModal();
 }
@@ -1091,6 +1166,60 @@ function buildRecentMeals() {
   row.innerHTML = unique.map(e =>
     `<div class="recent-chip" onclick="fillInput('${e.name.replace(/'/g,"\\'")}')">↩ ${e.name}</div>`
   ).join('');
+}
+
+// ─── WATER TRACKING ───────────────────────────────────────────────────────────
+const WATER_GOAL_OZ = 64;
+
+const WATER_KWS = ['water','h2o','hydrat','glass of water','cup of water','bottle of water','glasses of water'];
+function looksLikeWater(t) {
+  const l = t.toLowerCase();
+  return WATER_KWS.some(k => l.includes(k));
+}
+
+function parseWaterOz(text) {
+  const l = text.toLowerCase();
+  // Match patterns like: 16oz, 16 oz, 2 cups, 2 glasses, a glass, half a bottle (16oz assumed)
+  const ozMatch  = l.match(/(\d+\.?\d*)\s*oz/);
+  if (ozMatch) return Math.round(parseFloat(ozMatch[1]));
+  const cupMatch = l.match(/(\d+\.?\d*)\s*cup/);
+  if (cupMatch) return Math.round(parseFloat(cupMatch[1]) * 8);
+  const glassMatch = l.match(/(\d+\.?\d*)\s*glass/);
+  if (glassMatch) return Math.round(parseFloat(glassMatch[1]) * 8);
+  const bottleMatch = l.match(/(\d+\.?\d*)\s*bottle/);
+  if (bottleMatch) return Math.round(parseFloat(bottleMatch[1]) * 16);
+  // "a glass", "a cup", "a bottle" — single unit
+  if (/\ba\s+glass\b/.test(l)) return 8;
+  if (/\ba\s+cup\b/.test(l))   return 8;
+  if (/\ba\s+bottle\b/.test(l)) return 16;
+  // Just "water" with no quantity — assume 8oz
+  return 8;
+}
+
+function getTodayWaterOz(dateKey) {
+  dateKey = dateKey || todayKey();
+  return (state.entries || [])
+    .filter(e => e.date === dateKey && e.type === 'water')
+    .reduce((s, e) => s + (e.oz || 0), 0);
+}
+
+function handleWaterLog(text) {
+  const oz       = parseWaterOz(text);
+  const entry    = { id: Date.now(), type: 'water', name: `Water (${oz} oz)`, oz, ts: new Date().toISOString(), date: todayKey() };
+  state.entries.push(entry);
+  saveState();
+  const totalOz  = getTodayWaterOz();
+  const remaining = Math.max(WATER_GOAL_OZ - totalOz, 0);
+  const pct      = Math.round((totalOz / WATER_GOAL_OZ) * 100);
+  let reply;
+  if (totalOz >= WATER_GOAL_OZ) {
+    reply = `💧 Logged ${oz} oz — you've hit your ${WATER_GOAL_OZ} oz goal today! Great hydration. (${totalOz} oz total)`;
+  } else {
+    reply = `💧 Logged ${oz} oz — ${totalOz} oz down, ${remaining} oz to go (${pct}% of ${WATER_GOAL_OZ} oz goal).`;
+  }
+  appendBubble('ai', reply);
+  saveMessage('ai', reply);
+  renderToday();
 }
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────
@@ -1237,6 +1366,7 @@ async function sendMessage() {
     document.getElementById('edit-banner').style.display = 'none';
     handleSummaryRequest(); sendBtn.disabled = false; return;
   }
+  if (!editingEntryId && looksLikeWater(text)) { handleWaterLog(text); sendBtn.disabled = false; return; }
 
   const typingRow  = appendTyping();
   const profile    = getProfile();
@@ -1364,6 +1494,7 @@ function renderToday() {
   const entries  = (state.entries || []).filter(e => e.date === dateKey);
   const food     = entries.filter(e => e.type === 'food');
   const activity = entries.filter(e => e.type === 'activity');
+  const water    = entries.filter(e => e.type === 'water');
   const goals    = calcGoals(getProfile());
 
   const totalCal   = food.reduce((s,e) => s+(e.macros?.cal||0), 0);
@@ -1372,6 +1503,7 @@ function renderToday() {
   const totalC     = food.reduce((s,e) => s+(e.macros?.c||0), 0);
   const totalF     = food.reduce((s,e) => s+(e.macros?.f||0), 0);
   const totBurned  = activity.reduce((s,e) => s+Math.abs(e.cal||0), 0);
+  const totalOz    = water.reduce((s,e) => s+(e.oz||0), 0);
   const netCal     = totalCal - totBurned;
 
   updateDayNav();
@@ -1379,6 +1511,16 @@ function renderToday() {
   document.getElementById('today-cal-val').textContent = totalCal;
   const circ = 207.3;
   document.getElementById('cal-ring-fill').style.strokeDashoffset = circ-(circ*Math.min(totalCal/goals.cal,1));
+  // Ring color follows goal mode
+  const ringEl = document.getElementById('cal-ring-fill');
+  const mode   = getProfile()?.goalMode || 'Maintain';
+  if (mode === 'Bulk +250') {
+    ringEl.style.stroke = 'var(--blue)';
+  } else if (mode.startsWith('Cut')) {
+    ringEl.style.stroke = 'var(--amber)';
+  } else {
+    ringEl.style.stroke = 'var(--green)';
+  }
 
   document.getElementById('today-p').textContent     = totalP+'g';
   document.getElementById('today-fiber').textContent = totalFiber+'g';
@@ -1409,6 +1551,20 @@ function renderToday() {
     document.getElementById('net-cal-detail').textContent     = `${totalCal} consumed − ${totBurned} burned`;
     document.getElementById('net-cal-goal-detail').textContent = `of ${goals.cal} kcal goal`;
   } else { netStrip.style.display = 'none'; }
+
+  // Hydration strip — show whenever any water logged today
+  const hydStrip = document.getElementById('hydration-strip');
+  if (totalOz > 0) {
+    hydStrip.style.display = '';
+    const pct = Math.min(Math.round((totalOz / WATER_GOAL_OZ) * 100), 100);
+    const remaining = Math.max(WATER_GOAL_OZ - totalOz, 0);
+    document.getElementById('hydration-val').textContent      = `${totalOz} oz`;
+    document.getElementById('hydration-bar-fill').style.width = pct + '%';
+    document.getElementById('hydration-sub').textContent      =
+      totalOz >= WATER_GOAL_OZ
+        ? `✓ ${WATER_GOAL_OZ} oz goal reached!`
+        : `${remaining} oz to go — ${pct}% of ${WATER_GOAL_OZ} oz goal`;
+  } else { hydStrip.style.display = 'none'; }
 
   const actSection = document.getElementById('today-activity-section');
   const actList    = document.getElementById('today-activity-list');
@@ -1453,7 +1609,10 @@ function setFilter(btn, filter) {
 
 function renderLog() {
   const entries  = (state.entries || []).filter(e =>
-    currentFilter === 'all' ? true : currentFilter === 'food' ? e.type === 'food' : e.type === 'activity'
+    currentFilter === 'all'      ? true :
+    currentFilter === 'food'     ? e.type === 'food' :
+    currentFilter === 'activity' ? e.type === 'activity' :
+    currentFilter === 'water'    ? e.type === 'water' : true
   );
   const logList  = document.getElementById('log-list');
   const logEmpty = document.getElementById('log-empty');
@@ -1469,18 +1628,20 @@ function renderLog() {
       <div class="log-day-header">${formatDateLabel(date)}</div>
       ${groups[date].map(e => `
         <div class="log-entry">
-          <div class="log-entry-dot ${e.type==='activity'?'activity':''}"></div>
+          <div class="log-entry-dot ${e.type === 'activity' ? 'activity' : e.type === 'water' ? 'water' : ''}"></div>
           <div class="log-entry-body">
             <div class="log-entry-name">${e.name}</div>
-            <div class="log-entry-detail">${e.type==='food'
-              ? `P ${e.macros?.p||0}g · Fiber ${e.macros?.fiber||0}g · C ${e.macros?.c||0}g · F ${e.macros?.f||0}g`
-              : `${e.duration||'?'} min · MET ${e.met||'?'}`}</div>
+            <div class="log-entry-detail">${
+              e.type === 'food'     ? `P ${e.macros?.p||0}g · Fiber ${e.macros?.fiber||0}g · C ${e.macros?.c||0}g · F ${e.macros?.f||0}g` :
+              e.type === 'activity' ? `${e.duration||'?'} min · MET ${e.met||'?'}` :
+              e.type === 'water'    ? `${e.oz} oz` : ''
+            }</div>
           </div>
-          <div class="log-entry-cal ${e.type==='activity'?'activity':''}">
-            ${e.type==='activity'?'−'+Math.abs(e.cal):(e.macros?.cal||0)} kcal
+          <div class="log-entry-cal ${e.type === 'activity' ? 'activity' : e.type === 'water' ? 'activity' : ''}">
+            ${e.type === 'activity' ? '−'+Math.abs(e.cal) : e.type === 'water' ? e.oz+' oz' : (e.macros?.cal||0)} ${e.type === 'water' ? '' : 'kcal'}
           </div>
           <div class="log-entry-actions">
-            <button class="btn-edit" onclick="startEdit(${e.id})">Edit</button>
+            ${e.type !== 'water' ? `<button class="btn-edit" onclick="startEdit(${e.id})">Edit</button>` : ''}
             <button class="btn-delete" onclick="deleteEntry(${e.id})">✕</button>
           </div>
         </div>`).join('')}
