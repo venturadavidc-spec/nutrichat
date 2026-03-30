@@ -645,6 +645,25 @@
     }
     .clear-day-btn:active { background: rgba(248,113,113,0.1); border-color: var(--coral-dim); }
 
+    /* ─── QUICK ACCESS STRIP ─── */
+    #quick-access-strip {
+      flex-shrink: 0; border-top: 1px solid var(--border);
+      background: var(--bg);
+      padding: 8px 16px 6px;
+      display: flex; flex-direction: column; gap: 6px;
+      max-height: 160px; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    #quick-access-strip::-webkit-scrollbar { display: none; }
+    .scan-chip-row { display: flex; }
+    .scan-chip {
+      background: var(--surface2); border: 1px solid var(--teal-dim);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 13px; color: var(--teal); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .scan-chip:active { background: rgba(45,212,191,0.12); }
+
     /* ─── SCAN BUTTON ─── */
     #scan-btn {
       width: 42px; height: 42px; border-radius: 50%;
@@ -809,26 +828,30 @@
         <div class="welcome-chips">
           <div class="chip" onclick="fillInput('Had 3 scrambled eggs and toast for breakfast')">🥚 Eggs &amp; toast</div>
           <div class="chip" onclick="fillInput('Just got back from a 30 min walk')">🚶 Morning walk</div>
-          <div class="chip" onclick="fillInput('Lunch was a turkey sandwich and chips')">🥪 Turkey sandwich</div>
           <div class="chip" onclick="fillInput('What did I eat today?')">📊 Today's summary</div>
           <div class="chip" onclick="fillInput('How was my week?')">📅 Weekly summary</div>
-          <div class="chip" onclick="openScanner()">📷 Scan barcode</div>
-        </div>
-        <!-- Pinned favorites: populated by JS -->
-        <div class="recent-meals-section" id="favorites-section" style="display:none;">
-          <div class="recent-meals-label">Pinned favorites</div>
-          <div class="recent-meals-row" id="favorites-row"></div>
-        </div>
-        <!-- Recent meals: populated by JS when history exists -->
-        <div class="recent-meals-section" id="recent-meals-section" style="display:none;">
-          <div class="recent-meals-label">Recent meals</div>
-          <div class="recent-meals-row" id="recent-meals-row"></div>
         </div>
       </div>
     </div>
     <div id="edit-banner" class="edit-mode-banner" style="display:none; margin: 0 12px 0;">
       <span id="edit-banner-text">Editing entry</span>
       <button class="edit-cancel-btn" onclick="cancelEdit()">Cancel</button>
+    </div>
+    <!-- Quick access strip: scan + favorites + recents. Always visible when populated. -->
+    <div id="quick-access-strip" style="display:none;">
+      <div class="scan-chip-row">
+        <div class="scan-chip" onclick="openScanner()">📷 Scan barcode</div>
+      </div>
+      <!-- Pinned favorites: populated by JS -->
+      <div class="recent-meals-section" id="favorites-section" style="display:none;">
+        <div class="recent-meals-label">Pinned favorites</div>
+        <div class="recent-meals-row" id="favorites-row"></div>
+      </div>
+      <!-- Recent meals: populated by JS when history exists -->
+      <div class="recent-meals-section" id="recent-meals-section" style="display:none;">
+        <div class="recent-meals-label">Recent meals</div>
+        <div class="recent-meals-row" id="recent-meals-row"></div>
+      </div>
     </div>
     <div id="chat-input-area">
       <button id="scan-btn" onclick="openScanner()" title="Scan barcode">
@@ -1585,6 +1608,8 @@ const PIN_FILLED_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="cu
 </svg>`;
 
 function buildRecentMeals() {
+  const strip = document.getElementById('quick-access-strip');
+
   // ── Favorites section ──
   const favs = loadFavorites();
   const favSection = document.getElementById('favorites-section');
@@ -1613,18 +1638,24 @@ function buildRecentMeals() {
   }
   const section = document.getElementById('recent-meals-section');
   const row     = document.getElementById('recent-meals-row');
-  if (!unique.length) { section.style.display = 'none'; return; }
-  section.style.display = '';
-  row.innerHTML = unique.map(e => {
-    const safeName = e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const pinned   = isPinned(e.name);
-    return `<div class="chip-row">
-      <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">↩ ${e.name}</div>
-      <button class="chip-pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin'}"
-        onclick="event.stopPropagation();${pinned?`unpinMeal('${safeName}')`:`pinMeal({name:'${safeName}',macros:{cal:${e.macros?.cal||0},p:${e.macros?.p||0},fiber:${e.macros?.fiber||0},c:${e.macros?.c||0},f:${e.macros?.f||0}}})`}"
-      >${pinned ? PIN_FILLED_SVG : PIN_OUTLINE_SVG}</button>
-    </div>`;
-  }).join('');
+  if (unique.length) {
+    section.style.display = '';
+    row.innerHTML = unique.map(e => {
+      const safeName = e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const pinned   = isPinned(e.name);
+      return `<div class="chip-row">
+        <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">↩ ${e.name}</div>
+        <button class="chip-pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin'}"
+          onclick="event.stopPropagation();${pinned?`unpinMeal('${safeName}')`:`pinMeal({name:'${safeName}',macros:{cal:${e.macros?.cal||0},p:${e.macros?.p||0},fiber:${e.macros?.fiber||0},c:${e.macros?.c||0},f:${e.macros?.f||0}}})`}"
+        >${pinned ? PIN_FILLED_SVG : PIN_OUTLINE_SVG}</button>
+      </div>`;
+    }).join('');
+  } else {
+    section.style.display = 'none';
+  }
+
+  // Strip is always visible (scan chip is always useful); only hide if truly nothing to show
+  strip.style.display = '';
 }
 
 // ─── WATER TRACKING ───────────────────────────────────────────────────────────
