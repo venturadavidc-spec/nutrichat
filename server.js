@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const PORT = process.env.PORT || 3000;
 const path = require('path');
+const https = require('https');
 const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
@@ -116,6 +117,55 @@ Rules:
   } catch (err) {
     console.error('[NutriChat] Error:', err.message);
     res.status(500).json({ error: 'api_error', message: err.message });
+  }
+});
+
+// Barcode lookup endpoint (Open Food Facts)
+app.post('/lookup-barcode', async (req, res) => {
+  const { barcode } = req.body;
+  if (!barcode) return res.status(400).json({ found: false });
+
+  console.log(`[NutriChat] Barcode lookup: ${barcode}`);
+
+  const url = `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`;
+
+  try {
+    const data = await new Promise((resolve, reject) => {
+      https.get(url, { headers: { 'User-Agent': 'NutriChat/1.0 (nutrition logging app)' } }, (r) => {
+        let body = '';
+        r.on('data', chunk => body += chunk);
+        r.on('end', () => { try { resolve(JSON.parse(body)); } catch (e) { reject(e); } });
+      }).on('error', reject);
+    });
+
+    if (data.status !== 1 || !data.product) {
+      return res.json({ found: false });
+    }
+
+    const p = data.product;
+    const n = p.nutriments || {};
+
+    const pick = (key) => {
+      const serving = n[key + '_serving'];
+      const per100  = n[key + '_100g'];
+      const val = (serving != null && serving !== '') ? serving : per100;
+      return val != null ? Math.round(Number(val)) : 0;
+    };
+
+    res.json({
+      found:   true,
+      name:    (p.product_name || 'Unknown product').trim(),
+      brand:   (p.brands || '').trim(),
+      cal:     pick('energy-kcal'),
+      pro:     pick('proteins'),
+      carb:    pick('carbohydrates'),
+      fat:     pick('fat'),
+      fiber:   pick('fiber'),
+      serving: (p.serving_size || '').trim(),
+    });
+  } catch (err) {
+    console.error('[NutriChat] Barcode lookup error:', err.message);
+    res.status(500).json({ found: false });
   }
 });
 

@@ -12,6 +12,7 @@
   <title>NutriChat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <style>
     /* ─── DARK THEME (default) ─── */
     :root,
@@ -643,6 +644,116 @@
       cursor: pointer; transition: all 0.15s;
     }
     .clear-day-btn:active { background: rgba(248,113,113,0.1); border-color: var(--coral-dim); }
+
+    /* ─── SCAN BUTTON ─── */
+    #scan-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: border-color 0.15s, background 0.15s;
+    }
+    #scan-btn:active { border-color: var(--green-dim); background: var(--green-glow); }
+    #scan-btn svg { width: 18px; height: 18px; color: var(--text-dim); }
+
+    /* ─── SCANNER MODAL ─── */
+    #scanner-modal {
+      position: absolute; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.92);
+      display: flex; flex-direction: column; align-items: stretch;
+    }
+    #scanner-modal.hidden { display: none; }
+    .scanner-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: calc(var(--safe-top) + 14px) 16px 14px;
+      color: #fff;
+    }
+    .scanner-title { font-size: 16px; font-weight: 600; }
+    .scanner-close-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(255,255,255,0.12); border: none;
+      color: #fff; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scanner-viewport {
+      flex: 1; position: relative; overflow: hidden; margin: 0 16px;
+      border-radius: var(--radius); background: #000;
+      max-height: 70dvh;
+    }
+    #scanner-video {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .scanner-shade {
+      position: absolute; inset: 0;
+      box-shadow: inset 0 0 0 56px rgba(0,0,0,0.55);
+      pointer-events: none;
+    }
+    .scanner-corners {
+      position: absolute; inset: 56px;
+      pointer-events: none;
+    }
+    .scanner-corners::before, .scanner-corners::after,
+    .scanner-corner-bl, .scanner-corner-br {
+      content: ''; position: absolute;
+      width: 22px; height: 22px;
+      border-color: var(--green); border-style: solid;
+    }
+    .scanner-corners::before { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 3px 0 0 0; }
+    .scanner-corners::after  { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 3px 0 0; }
+    .scanner-corner-bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 3px; }
+    .scanner-corner-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 3px 0; }
+    .scanner-line {
+      position: absolute; left: 56px; right: 56px; height: 2px;
+      background: var(--green);
+      box-shadow: 0 0 8px 1px var(--green);
+      animation: scanSweep 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes scanSweep {
+      0%   { top: 58px; }
+      50%  { top: calc(100% - 60px); }
+      100% { top: 58px; }
+    }
+    .scanner-status {
+      text-align: center; color: rgba(255,255,255,0.7);
+      font-size: 14px; padding: 16px; font-family: var(--mono);
+    }
+
+    /* ─── BARCODE CONFIRM CARD ─── */
+    .barcode-product-name {
+      font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px;
+    }
+    .barcode-product-serving {
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .barcode-actions {
+      display: flex; gap: 8px; margin-top: 10px;
+    }
+    .barcode-log-btn {
+      flex: 1; padding: 9px; border-radius: var(--radius-sm);
+      background: var(--green); border: none; color: #0f1410;
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .barcode-log-btn:active { background: var(--green-dim); }
+    .barcode-edit-btn {
+      padding: 9px 14px; border-radius: var(--radius-sm);
+      background: var(--surface3); border: 1px solid var(--border);
+      color: var(--text-dim); font-family: var(--font); font-size: 14px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .barcode-edit-btn:active { border-color: var(--green-dim); color: var(--green); }
+
+    /* ─── FAVORITES ─── */
+    #favorites-section { width: 100%; margin-bottom: 4px; }
+    .chip-row { display: flex; align-items: center; gap: 3px; }
+    .chip-pin-btn {
+      flex-shrink: 0; background: none; border: none; padding: 4px 3px;
+      cursor: pointer; line-height: 0; opacity: 0.5; transition: opacity 0.15s;
+    }
+    .chip-pin-btn:active { opacity: 1; }
+    .chip-pin-btn svg { display: block; }
+    .chip-pin-btn.pinned { opacity: 0.9; }
+    .chip-pin-btn.pinned svg { color: var(--amber); }
   </style>
 </head>
 <body>
@@ -701,6 +812,12 @@
           <div class="chip" onclick="fillInput('Lunch was a turkey sandwich and chips')">🥪 Turkey sandwich</div>
           <div class="chip" onclick="fillInput('What did I eat today?')">📊 Today's summary</div>
           <div class="chip" onclick="fillInput('How was my week?')">📅 Weekly summary</div>
+          <div class="chip" onclick="openScanner()">📷 Scan barcode</div>
+        </div>
+        <!-- Pinned favorites: populated by JS -->
+        <div class="recent-meals-section" id="favorites-section" style="display:none;">
+          <div class="recent-meals-label">Pinned favorites</div>
+          <div class="recent-meals-row" id="favorites-row"></div>
         </div>
         <!-- Recent meals: populated by JS when history exists -->
         <div class="recent-meals-section" id="recent-meals-section" style="display:none;">
@@ -714,6 +831,16 @@
       <button class="edit-cancel-btn" onclick="cancelEdit()">Cancel</button>
     </div>
     <div id="chat-input-area">
+      <button id="scan-btn" onclick="openScanner()" title="Scan barcode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 5h2M7 5h1M10 5h2M3 9v6M21 9v6M3 19h2M7 19h1M10 19h2M14 5h1M17 5h1M20 5h1M14 19h1M17 19h1M20 19h1M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3z"/>
+          <rect x="7" y="7" width="1.5" height="1.5" fill="currentColor" stroke="none"/>
+          <rect x="17" y="7" width="1.5" height="1.5" fill="currentColor" stroke="none"/>
+          <rect x="7" y="17" width="1.5" height="1.5" fill="currentColor" stroke="none"/>
+          <line x1="14" y1="10" x2="14" y2="14"/><line x1="18" y1="10" x2="18" y2="14"/>
+          <line x1="14" y1="14" x2="21" y2="14"/><line x1="21" y1="10" x2="14" y2="10"/>
+        </svg>
+      </button>
       <textarea id="chat-input" placeholder="Log food or activity…" rows="1"
         autocomplete="off" autocorrect="on" autocapitalize="sentences"></textarea>
       <button id="send-btn" disabled>
@@ -1092,6 +1219,24 @@
     </div>
   </div>
 
+  <!-- SCANNER MODAL -->
+  <div id="scanner-modal" class="hidden">
+    <div class="scanner-topbar">
+      <div class="scanner-title">Scan Barcode</div>
+      <button class="scanner-close-btn" onclick="stopScanner()">✕</button>
+    </div>
+    <div class="scanner-viewport">
+      <video id="scanner-video" playsinline muted></video>
+      <div class="scanner-shade"></div>
+      <div class="scanner-corners">
+        <div class="scanner-corner-bl"></div>
+        <div class="scanner-corner-br"></div>
+      </div>
+      <div class="scanner-line"></div>
+    </div>
+    <div class="scanner-status" id="scanner-status">Starting camera…</div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <nav id="bottom-nav">
     <div class="nav-tab active" data-view="chat" onclick="switchView('chat')">
@@ -1143,7 +1288,28 @@
 const STORAGE_KEY   = 'nutrichat_v1';
 const PROFILE_KEY   = 'nutrichat_profile';
 const OVERRIDES_KEY = 'nutrichat_goal_overrides';
-const THEME_KEY     = 'nutrichat_theme';
+const THEME_KEY      = 'nutrichat_theme';
+const FAVORITES_KEY  = 'nutrichat_favorites';
+
+// ─── FAVORITES ────────────────────────────────────────────────────────────────
+function loadFavorites() {
+  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || []; } catch { return []; }
+}
+function saveFavorites(favs) { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs)); }
+function isPinned(name) {
+  return loadFavorites().some(f => f.name.toLowerCase().trim() === name.toLowerCase().trim());
+}
+function pinMeal(entry) {
+  const favs = loadFavorites();
+  if (favs.length >= 10 || isPinned(entry.name)) return;
+  favs.unshift({ name: entry.name, macros: entry.macros });
+  saveFavorites(favs);
+  buildRecentMeals();
+}
+function unpinMeal(name) {
+  saveFavorites(loadFavorites().filter(f => f.name.toLowerCase().trim() !== name.toLowerCase().trim()));
+  buildRecentMeals();
+}
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 function getSystemTheme() {
@@ -1410,7 +1576,33 @@ function switchView(name) {
 }
 
 // ─── RECENT MEALS ─────────────────────────────────────────────────────────────
+const PIN_OUTLINE_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <line x1="12" y1="17" x2="12" y2="22"/>
+  <path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24V17z"/>
+</svg>`;
+const PIN_FILLED_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="none">
+  <path d="M12 22v-5M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24V17z"/>
+</svg>`;
+
 function buildRecentMeals() {
+  // ── Favorites section ──
+  const favs = loadFavorites();
+  const favSection = document.getElementById('favorites-section');
+  const favRow     = document.getElementById('favorites-row');
+  if (favs.length) {
+    favSection.style.display = '';
+    favRow.innerHTML = favs.map(f => {
+      const safeName = f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<div class="chip-row">
+        <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">📌 ${f.name}</div>
+        <button class="chip-pin-btn pinned" title="Unpin" onclick="event.stopPropagation();unpinMeal('${safeName}')">${PIN_FILLED_SVG}</button>
+      </div>`;
+    }).join('');
+  } else {
+    favSection.style.display = 'none';
+  }
+
+  // ── Recent meals section ──
   const food = (state.entries || []).filter(e => e.type === 'food')
     .sort((a,b) => b.ts.localeCompare(a.ts));
   const seen = new Set(); const unique = [];
@@ -1423,9 +1615,16 @@ function buildRecentMeals() {
   const row     = document.getElementById('recent-meals-row');
   if (!unique.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-  row.innerHTML = unique.map(e =>
-    `<div class="recent-chip" onclick="fillInput('${e.name.replace(/'/g,"\\'")}')">↩ ${e.name}</div>`
-  ).join('');
+  row.innerHTML = unique.map(e => {
+    const safeName = e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const pinned   = isPinned(e.name);
+    return `<div class="chip-row">
+      <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">↩ ${e.name}</div>
+      <button class="chip-pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin'}"
+        onclick="event.stopPropagation();${pinned?`unpinMeal('${safeName}')`:`pinMeal({name:'${safeName}',macros:${JSON.stringify(e.macros)}})`}"
+      >${pinned ? PIN_FILLED_SVG : PIN_OUTLINE_SVG}</button>
+    </div>`;
+  }).join('');
 }
 
 // ─── WATER TRACKING ───────────────────────────────────────────────────────────
@@ -2107,6 +2306,159 @@ function renderLog() {
           </div>
         </div>`).join('')}
     </div>`).join('');
+}
+
+// ─── BARCODE SCANNER ──────────────────────────────────────────────────────────
+let _zxingReader       = null;
+let _confirmCardRow    = null;
+
+function openScanner() {
+  if (!window.ZXing) {
+    alert('Scanner library not loaded — try refreshing the page.');
+    return;
+  }
+  const modal    = document.getElementById('scanner-modal');
+  const statusEl = document.getElementById('scanner-status');
+  modal.classList.remove('hidden');
+  statusEl.textContent = 'Starting camera…';
+
+  try {
+    _zxingReader = new ZXing.BrowserMultiFormatReader();
+    _zxingReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
+      if (result) {
+        const code = typeof result.getText === 'function' ? result.getText() : result.text;
+        stopScanner();
+        handleBarcodeResult(code);
+      }
+      // ZXing fires NotFoundException constantly while scanning — suppress it
+      if (err && err.name && err.name !== 'NotFoundException') {
+        statusEl.textContent = 'Camera not available — try typing the product name';
+      }
+    }).then(() => {
+      statusEl.textContent = 'Point camera at a barcode';
+    }).catch(() => {
+      statusEl.textContent = 'Camera not available — try typing the product name';
+    });
+  } catch (e) {
+    statusEl.textContent = 'Camera not available — try typing the product name';
+  }
+}
+
+function stopScanner() {
+  if (_zxingReader) {
+    try { _zxingReader.reset(); } catch (_) {}
+    _zxingReader = null;
+  }
+  document.getElementById('scanner-modal').classList.add('hidden');
+}
+
+async function handleBarcodeResult(barcode) {
+  hideWelcome();
+  switchView('chat');
+  const typingRow = appendTyping();
+  try {
+    const res  = await fetch('/lookup-barcode', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barcode }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await res.json();
+    typingRow.remove();
+
+    if (!data.found) {
+      const msg = "Couldn't find that product in the database. Try describing what you ate instead!";
+      appendBubble('ai', msg); saveMessage('ai', msg);
+      chatInput.focus();
+      return;
+    }
+    showBarcodeConfirmCard(data);
+  } catch (err) {
+    typingRow.remove();
+    const msg = "Couldn't reach the product database. Try describing what you ate instead!";
+    appendBubble('ai', msg); saveMessage('ai', msg);
+  }
+}
+
+function showBarcodeConfirmCard(data) {
+  const row    = document.createElement('div');
+  row.className = 'bubble-row ai';
+  _confirmCardRow = row;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'bubble-avatar';
+  avatar.textContent = 'N';
+
+  const wrap   = document.createElement('div');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'barcode-product-name';
+  nameEl.textContent = data.name + (data.brand ? ' · ' + data.brand : '');
+
+  const servingEl = document.createElement('div');
+  servingEl.className = 'barcode-product-serving';
+  servingEl.textContent = data.serving || 'per serving';
+
+  const macroCard = document.createElement('div');
+  macroCard.className = 'macro-card';
+  macroCard.innerHTML = `
+    <div class="macro-item"><div class="macro-val cal">${data.cal}</div><div class="macro-label">kcal</div></div>
+    <div class="macro-item"><div class="macro-val pro">${data.pro}g</div><div class="macro-label">protein</div></div>
+    <div class="macro-item"><div class="macro-val fiber">${data.fiber||0}g</div><div class="macro-label">fiber</div></div>
+    <div class="macro-item"><div class="macro-val carb">${data.carb}g</div><div class="macro-label">carbs</div></div>
+    <div class="macro-item"><div class="macro-val fat">${data.fat}g</div><div class="macro-label">fat</div></div>`;
+
+  const actions  = document.createElement('div');
+  actions.className = 'barcode-actions';
+
+  const logBtn   = document.createElement('button');
+  logBtn.className = 'barcode-log-btn';
+  logBtn.textContent = '✓ Log it';
+  logBtn.onclick = () => confirmBarcodeLog(data);
+
+  const editBtn  = document.createElement('button');
+  editBtn.className = 'barcode-edit-btn';
+  editBtn.textContent = '✎ Edit';
+  editBtn.onclick = () => {
+    fillInput(data.name);
+    if (_confirmCardRow) { _confirmCardRow.remove(); _confirmCardRow = null; }
+  };
+
+  actions.appendChild(logBtn);
+  actions.appendChild(editBtn);
+  bubble.appendChild(nameEl);
+  bubble.appendChild(servingEl);
+  bubble.appendChild(macroCard);
+  bubble.appendChild(actions);
+
+  const time = document.createElement('div');
+  time.className = 'bubble-time';
+  time.textContent = formatTime(new Date().toISOString());
+
+  wrap.appendChild(bubble); wrap.appendChild(time);
+  row.appendChild(avatar);  row.appendChild(wrap);
+  chatMsgs.appendChild(row);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function confirmBarcodeLog(data) {
+  if (_confirmCardRow) { _confirmCardRow.remove(); _confirmCardRow = null; }
+  const entryTs = new Date().toISOString();
+  const entry   = {
+    id: Date.now(), type: 'food', name: data.name,
+    macros: { cal: data.cal, p: data.pro, fiber: data.fiber || 0, c: data.carb, f: data.fat },
+    ts: entryTs, date: todayKey(),
+    mealTag: getMealTag(entryTs),
+  };
+  state.entries.push(entry);
+  saveState();
+  buildRecentMeals();
+  renderToday();
+  const macros = { cal: data.cal, p: data.pro, fiber: data.fiber || 0, c: data.carb, f: data.fat };
+  const rt     = `Logged — ${data.name}.`;
+  appendBubble('ai', rt, macros);
+  saveMessage('ai', rt, macros);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
