@@ -514,6 +514,31 @@
       background: var(--surface3); color: var(--text-muted);
     }
 
+    /* ─── STREAK BADGE ─── */
+    .streak-badge {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 10px 16px;
+    }
+    .streak-badge.active { border-color: var(--amber-dim); background: rgba(245,158,11,0.08); }
+    .streak-flame { font-size: 20px; line-height: 1; }
+    .streak-count { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--amber); line-height: 1; }
+    .streak-label { font-size: 13px; color: var(--text-dim); }
+    .streak-zero  { font-size: 13px; color: var(--text-muted); }
+
+    /* Profile streak stat */
+    .profile-stats-row {
+      display: flex; gap: 0; width: 100%; margin-top: 4px;
+      background: var(--surface2); border-radius: var(--radius-sm); overflow: hidden;
+    }
+    .profile-stat-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 10px 4px;
+    }
+    .profile-stat-cell + .profile-stat-cell { border-left: 1px solid var(--border); }
+    .profile-stat-val { font-family: var(--mono); font-size: 18px; font-weight: 500; }
+    .profile-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
     /* ─── WEEK VIEW ─── */
     #view-week { padding: 16px; }
     .week-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
@@ -891,6 +916,10 @@
       </button>
     </div>
 
+    <!-- Streak badge -->
+    <div class="streak-badge" id="streak-badge">
+      <span class="streak-zero">Log food today to start your streak 🔥</span>
+    </div>
     <div class="section-label" id="today-section-label">Daily overview</div>
     <div class="today-summary">
       <div class="cal-ring">
@@ -1094,6 +1123,20 @@
       </div>
       <div class="profile-name" id="profile-display-name">Your Profile</div>
       <div class="profile-subtitle" id="profile-display-sub">Set up your profile for accurate tracking</div>
+      <div class="profile-stats-row" id="profile-stats-row" style="display:none;">
+        <div class="profile-stat-cell">
+          <div class="profile-stat-val" id="ps-streak" style="color:var(--amber)">0</div>
+          <div class="profile-stat-lbl">🔥 streak</div>
+        </div>
+        <div class="profile-stat-cell">
+          <div class="profile-stat-val" id="ps-best-streak" style="color:var(--amber)">0</div>
+          <div class="profile-stat-lbl">best streak</div>
+        </div>
+        <div class="profile-stat-cell">
+          <div class="profile-stat-val" id="ps-logged" style="color:var(--green)">0</div>
+          <div class="profile-stat-lbl">days logged</div>
+        </div>
+      </div>
       <div class="goals-summary" id="goals-summary-display" style="display:none; width:100%;">
         <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--green)" id="gs-cal">—</div><div class="goals-summary-lbl">kcal</div></div>
         <div class="goals-summary-item"><div class="goals-summary-val" style="color:var(--blue)" id="gs-p">—</div><div class="goals-summary-lbl">protein</div></div>
@@ -1439,6 +1482,15 @@ function updateProfileDisplay(p) {
   document.getElementById('header-profile-btn').classList.toggle('has-profile', !!p.name || !!p.weightLbs);
   const goals = calcGoals(p);
   document.getElementById('goals-summary-display').style.display = '';
+  // Streak stats row
+  const streakData = calcStreak();
+  const statsRow = document.getElementById('profile-stats-row');
+  if (statsRow) {
+    statsRow.style.display = '';
+    document.getElementById('ps-streak').textContent      = streakData.current;
+    document.getElementById('ps-best-streak').textContent = streakData.best;
+    document.getElementById('ps-logged').textContent      = streakData.totalLogged;
+  }
   // Cal target with mode badge
   const modeLabels = { 'Maintain': 'maintain', 'Cut -250': 'cut –250', 'Cut -500': 'cut –500', 'Bulk +250': 'bulk +250' };
   const modeCls    = { 'Maintain': 'maintain', 'Cut -250': 'cut', 'Cut -500': 'cut', 'Bulk +250': 'bulk' };
@@ -1536,6 +1588,37 @@ function updateHeaderDate() {
     new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 updateHeaderDate();
+
+// ─── STREAK CALCULATION ───────────────────────────────────────────────────────
+function calcStreak() {
+  const loggedDays = new Set(
+    (state.entries || []).filter(e => e.type === 'food').map(e => e.date)
+  );
+
+  // Current streak: walk backward from today
+  let current = 0;
+  for (let i = 0; i <= MAX_DAYS; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (loggedDays.has(key)) { current++; }
+    else { break; }
+  }
+
+  // Best streak: walk full history sorted ascending
+  const allKeys = [...loggedDays].sort();
+  let best = 0, run = 0, prevKey = null;
+  for (const key of allKeys) {
+    if (prevKey) {
+      const gap = Math.round((new Date(key+'T12:00:00') - new Date(prevKey+'T12:00:00')) / 86400000);
+      if (gap === 1) { run++; }
+      else { best = Math.max(best, run); run = 1; }
+    } else { run = 1; }
+    prevKey = key;
+  }
+  best = Math.max(best, run, current);
+
+  return { current, best, totalLogged: loggedDays.size };
+}
 
 // ─── MEAL TAGGING ─────────────────────────────────────────────────────────────
 const MEAL_TAG_ORDER = ['breakfast','lunch','snack','dinner'];
@@ -2289,6 +2372,20 @@ function renderToday() {
             </div>`).join('')}
         </div>`).join('');
   } else { empty.style.display = ''; mealList.innerHTML = ''; }
+
+  // Streak badge
+  const { current: streak } = calcStreak();
+  const badgeEl = document.getElementById('streak-badge');
+  if (streak === 0) {
+    badgeEl.className = 'streak-badge';
+    badgeEl.innerHTML = `<span class="streak-zero">Log food today to start your streak 🔥</span>`;
+  } else if (streak === 1) {
+    badgeEl.className = 'streak-badge active';
+    badgeEl.innerHTML = `<span class="streak-flame">🔥</span><span class="streak-count">1</span><span class="streak-label">day streak — keep it going!</span>`;
+  } else {
+    badgeEl.className = 'streak-badge active';
+    badgeEl.innerHTML = `<span class="streak-flame">🔥</span><span class="streak-count">${streak}</span><span class="streak-label">day streak 🎯</span>`;
+  }
 }
 
 // ─── LOG VIEW ─────────────────────────────────────────────────────────────────
