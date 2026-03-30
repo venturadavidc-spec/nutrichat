@@ -1621,7 +1621,7 @@ function buildRecentMeals() {
     return `<div class="chip-row">
       <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">↩ ${e.name}</div>
       <button class="chip-pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin'}"
-        onclick="event.stopPropagation();${pinned?`unpinMeal('${safeName}')`:`pinMeal({name:'${safeName}',macros:${JSON.stringify(e.macros)}})`}"
+        onclick="event.stopPropagation();${pinned?`unpinMeal('${safeName}')`:`pinMeal({name:'${safeName}',macros:{cal:${e.macros?.cal||0},p:${e.macros?.p||0},fiber:${e.macros?.fiber||0},c:${e.macros?.c||0},f:${e.macros?.f||0}}})`}"
       >${pinned ? PIN_FILLED_SVG : PIN_OUTLINE_SVG}</button>
     </div>`;
   }).join('');
@@ -2324,16 +2324,13 @@ function openScanner() {
 
   try {
     _zxingReader = new ZXing.BrowserMultiFormatReader();
-    _zxingReader.decodeFromVideoDevice(null, 'scanner-video', (result, err) => {
+    _zxingReader.decodeFromVideoDevice(null, 'scanner-video', (result) => {
       if (result) {
         const code = typeof result.getText === 'function' ? result.getText() : result.text;
         stopScanner();
         handleBarcodeResult(code);
       }
-      // ZXing fires NotFoundException constantly while scanning — suppress it
-      if (err && err.name && err.name !== 'NotFoundException') {
-        statusEl.textContent = 'Camera not available — try typing the product name';
-      }
+      // Non-result callbacks are normal decode misses — ignore them entirely
     }).then(() => {
       statusEl.textContent = 'Point camera at a barcode';
     }).catch(() => {
