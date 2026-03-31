@@ -514,6 +514,61 @@
       background: var(--surface3); color: var(--text-muted);
     }
 
+    /* ─── WEIGHT TRACKING ─── */
+    .weight-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .weight-entry-row {
+      display: flex; gap: 10px; align-items: center; padding: 16px;
+    }
+    .weight-input {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-family: var(--mono); font-size: 20px; color: var(--text);
+      outline: none; width: 110px; text-align: center; -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+    .weight-input:focus { border-color: var(--green-dim); }
+    .weight-unit { font-size: 14px; color: var(--text-muted); flex-shrink: 0; }
+    .weight-log-btn {
+      flex: 1; padding: 11px; border-radius: var(--radius-sm);
+      background: var(--green); border: none; color: #0f1410;
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .weight-log-btn:active { background: var(--green-dim); }
+    .weight-saved-msg {
+      font-size: 12px; color: var(--green); text-align: center;
+      padding: 0 16px 12px; display: none;
+    }
+    .weight-trend-area {
+      padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .weight-summary-row {
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .weight-current { font-family: var(--mono); font-size: 26px; font-weight: 500; color: var(--text); }
+    .weight-delta { font-family: var(--mono); font-size: 13px; }
+    .weight-delta.down { color: var(--green); }
+    .weight-delta.up   { color: var(--coral); }
+    .weight-delta.flat { color: var(--text-muted); }
+    .weight-delta-label { font-size: 12px; color: var(--text-muted); }
+    .weight-sparkline { width: 100%; height: 48px; display: block; }
+    .weight-history-list {
+      display: flex; flex-direction: column; gap: 0;
+      max-height: 180px; overflow-y: auto;
+      border-top: 1px solid var(--border); margin: 0 -16px; padding: 0 16px;
+    }
+    .weight-history-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .weight-history-row:last-child { border-bottom: none; }
+    .weight-history-date { color: var(--text-muted); font-family: var(--mono); font-size: 12px; }
+    .weight-history-val  { color: var(--text); font-family: var(--mono); font-weight: 500; }
+    .weight-history-delta { font-family: var(--mono); font-size: 11px; }
+    .weight-history-delta.down { color: var(--green); }
+    .weight-history-delta.up   { color: var(--coral); }
+
     /* ─── STREAK BADGE ─── */
     .streak-badge {
       display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -1229,6 +1284,27 @@
         <div class="profile-saved-banner" id="override-saved-banner">✓ Goal overrides saved</div>
       </div>
     </div>
+
+    <!-- Weight Tracking Card -->
+    <div class="weight-card">
+      <div class="profile-card-title">Weight Tracking</div>
+      <div class="weight-entry-row">
+        <input class="weight-input" id="weight-input" type="number" placeholder="185" inputmode="decimal" step="0.1"/>
+        <span class="weight-unit">lbs</span>
+        <button class="weight-log-btn" onclick="submitWeightLog()">Log weight</button>
+      </div>
+      <div class="weight-saved-msg" id="weight-saved-msg">✓ Logged!</div>
+      <div class="weight-trend-area" id="weight-trend-area" style="display:none;">
+        <div class="weight-summary-row">
+          <span class="weight-current" id="weight-current-val"></span>
+          <span class="weight-unit" style="font-size:13px;">lbs</span>
+          <span class="weight-delta" id="weight-delta-val"></span>
+          <span class="weight-delta-label" id="weight-delta-label"></span>
+        </div>
+        <svg class="weight-sparkline" id="weight-sparkline" viewBox="0 0 300 48" preserveAspectRatio="none"></svg>
+        <div class="weight-history-list" id="weight-history-list"></div>
+      </div>
+    </div>
   </div>
 
   <!-- FIRST LAUNCH MODAL -->
@@ -1356,6 +1432,32 @@ const PROFILE_KEY   = 'nutrichat_profile';
 const OVERRIDES_KEY = 'nutrichat_goal_overrides';
 const THEME_KEY      = 'nutrichat_theme';
 const FAVORITES_KEY  = 'nutrichat_favorites';
+const WEIGHT_KEY     = 'nutrichat_weight';
+
+// ─── WEIGHT TRACKING ──────────────────────────────────────────────────────────
+function loadWeightLog() {
+  try { return JSON.parse(localStorage.getItem(WEIGHT_KEY)) || []; } catch { return []; }
+}
+function saveWeightLog(log) { localStorage.setItem(WEIGHT_KEY, JSON.stringify(log)); }
+function logWeight(lbs) {
+  const log = loadWeightLog();
+  const today = todayKey();
+  const existing = log.findIndex(e => e.date === today);
+  if (existing >= 0) { log[existing].weight = lbs; }
+  else { log.push({ date: today, weight: lbs }); }
+  log.sort((a, b) => a.date.localeCompare(b.date));
+  if (log.length > 90) log.splice(0, log.length - 90);
+  saveWeightLog(log);
+}
+function getWeightTrend() {
+  const log = loadWeightLog();
+  if (!log.length) return null;
+  const recent = log.slice(-14);
+  const first  = recent[0].weight;
+  const last   = recent[recent.length - 1].weight;
+  const delta  = Math.round((last - first) * 10) / 10;
+  return { entries: recent, current: last, delta, first };
+}
 
 // ─── FAVORITES ────────────────────────────────────────────────────────────────
 function loadFavorites() {
@@ -1678,7 +1780,7 @@ function switchView(name) {
   if (name === 'today')   { viewedDateOffset = 0; renderToday(); }
   if (name === 'log')     renderLog();
   if (name === 'week')    renderWeek();
-  if (name === 'profile') populateProfileForm(getProfile());
+  if (name === 'profile') { populateProfileForm(getProfile()); renderWeightCard(); }
 }
 
 // ─── RECENT MEALS ─────────────────────────────────────────────────────────────
@@ -2584,6 +2686,71 @@ function confirmBarcodeLog(data) {
   const rt     = `Logged — ${data.name}.`;
   appendBubble('ai', rt, macros);
   saveMessage('ai', rt, macros);
+}
+
+// ─── WEIGHT CARD RENDER ───────────────────────────────────────────────────────
+function submitWeightLog() {
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if (!val || val < 50 || val > 700) return;
+  logWeight(val);
+  const msg = document.getElementById('weight-saved-msg');
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 2000);
+  renderWeightCard();
+  updateProfileDisplay(getProfile());
+}
+
+function renderWeightCard() {
+  const trend = getWeightTrend();
+  const trendArea = document.getElementById('weight-trend-area');
+  if (!trend || trend.entries.length < 1) { trendArea.style.display = 'none'; return; }
+  trendArea.style.display = '';
+
+  // Current + delta
+  document.getElementById('weight-current-val').textContent = trend.current;
+  const deltaEl  = document.getElementById('weight-delta-val');
+  const deltaLbl = document.getElementById('weight-delta-label');
+  if (trend.entries.length < 2) {
+    deltaEl.textContent = ''; deltaLbl.textContent = 'first entry';
+  } else {
+    const sign = trend.delta < 0 ? '' : trend.delta > 0 ? '+' : '';
+    deltaEl.textContent = `${sign}${trend.delta} lbs`;
+    deltaEl.className   = 'weight-delta ' + (trend.delta < 0 ? 'down' : trend.delta > 0 ? 'up' : 'flat');
+    deltaLbl.textContent = `over ${trend.entries.length} entries`;
+  }
+
+  // Sparkline SVG
+  const weights = trend.entries.map(e => e.weight);
+  const minW = Math.min(...weights), maxW = Math.max(...weights);
+  const range = maxW - minW || 1;
+  const W = 300, H = 48, pad = 4;
+  const points = weights.map((w, i) => {
+    const x = weights.length === 1 ? W / 2 : pad + (i / (weights.length - 1)) * (W - pad * 2);
+    const y = H - pad - ((w - minW) / range) * (H - pad * 2);
+    return `${x},${y}`;
+  });
+  const svgEl = document.getElementById('weight-sparkline');
+  const lineColor = trend.delta <= 0 ? 'var(--green)' : 'var(--coral)';
+  svgEl.innerHTML = `
+    <polyline points="${points.join(' ')}"
+      fill="none" stroke="${lineColor}" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${points[points.length-1].split(',')[0]}" cy="${points[points.length-1].split(',')[1]}"
+      r="3" fill="${lineColor}" stroke="none"/>`;
+
+  // History list (most recent first)
+  const reversed = [...trend.entries].reverse();
+  document.getElementById('weight-history-list').innerHTML = reversed.map((e, i) => {
+    const prev = reversed[i + 1];
+    const d    = prev ? Math.round((e.weight - prev.weight) * 10) / 10 : null;
+    const dStr = d != null ? (d > 0 ? `+${d}` : `${d}`) : '—';
+    const dCls = d == null ? '' : d < 0 ? 'down' : d > 0 ? 'up' : 'flat';
+    return `<div class="weight-history-row">
+      <span class="weight-history-date">${formatDateLabel(e.date)}</span>
+      <span class="weight-history-val">${e.weight} lbs</span>
+      <span class="weight-history-delta ${dCls}">${dStr}</span>
+    </div>`;
+  }).join('');
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
