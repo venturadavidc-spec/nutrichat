@@ -359,6 +359,25 @@
     .log-entry-cal { font-family: var(--mono); font-size: 14px; color: var(--green); flex-shrink: 0; }
     .log-entry-cal.activity { color: var(--blue); }
 
+    /* Search bar */
+    .log-search-wrap {
+      position: relative; margin-bottom: 12px;
+    }
+    .log-search-input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 36px 10px 14px;
+      font-family: var(--font); font-size: 14px; color: var(--text);
+      outline: none; transition: border-color 0.15s; -webkit-appearance: none; appearance: none;
+    }
+    .log-search-input:focus { border-color: var(--green-dim); }
+    .log-search-input::placeholder { color: var(--text-muted); }
+    .log-search-clear {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-muted); font-size: 16px;
+      cursor: pointer; padding: 4px; line-height: 1; display: none;
+    }
+    .log-search-clear.visible { display: block; }
+
     /* ─── PROFILE VIEW ─── */
     #view-profile { padding: 16px; }
     .profile-header {
@@ -1071,6 +1090,12 @@
 
   <!-- LOG VIEW -->
   <div class="view" id="view-log">
+    <div class="log-search-wrap">
+      <input class="log-search-input" id="log-search-input" type="search"
+        placeholder="Search food, activity..." autocomplete="off"
+        oninput="handleLogSearch(this.value)"/>
+      <button class="log-search-clear" id="log-search-clear" onclick="clearLogSearch()">✕</button>
+    </div>
     <div class="log-filter-row">
       <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
       <button class="filter-btn" data-filter="food" onclick="setFilter(this,'food')">Food</button>
@@ -2638,6 +2663,22 @@ function renderToday() {
 }
 
 // ─── LOG VIEW ─────────────────────────────────────────────────────────────────
+let logSearchQuery = '';
+
+function handleLogSearch(val) {
+  logSearchQuery = val.trim().toLowerCase();
+  const clearBtn = document.getElementById('log-search-clear');
+  clearBtn.classList.toggle('visible', logSearchQuery.length > 0);
+  renderLog();
+}
+
+function clearLogSearch() {
+  logSearchQuery = '';
+  document.getElementById('log-search-input').value = '';
+  document.getElementById('log-search-clear').classList.remove('visible');
+  renderLog();
+}
+
 function setFilter(btn, filter) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -2645,12 +2686,17 @@ function setFilter(btn, filter) {
 }
 
 function renderLog() {
-  const entries  = (state.entries || []).filter(e =>
-    currentFilter === 'all'      ? true :
-    currentFilter === 'food'     ? e.type === 'food' :
-    currentFilter === 'activity' ? e.type === 'activity' :
-    currentFilter === 'water'    ? e.type === 'water' : true
-  );
+  const entries  = (state.entries || []).filter(e => {
+    const matchesFilter =
+      currentFilter === 'all'      ? true :
+      currentFilter === 'food'     ? e.type === 'food' :
+      currentFilter === 'activity' ? e.type === 'activity' :
+      currentFilter === 'water'    ? e.type === 'water' : true;
+    const matchesSearch = logSearchQuery
+      ? e.name.toLowerCase().includes(logSearchQuery)
+      : true;
+    return matchesFilter && matchesSearch;
+  });
   const logList  = document.getElementById('log-list');
   const logEmpty = document.getElementById('log-empty');
   const clearBtn = document.getElementById('clear-day-btn');
