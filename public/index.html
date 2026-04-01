@@ -1318,6 +1318,18 @@
         <div class="weight-history-list" id="weight-history-list"></div>
       </div>
     </div>
+
+    <!-- Data Export Card -->
+    <div class="profile-card">
+      <div class="profile-card-title">Export Data</div>
+      <div class="profile-form">
+        <div class="form-hint" style="padding:0;">Download your full log history — up to 14 days of entries plus your weight log.</div>
+        <div class="form-row" style="margin-top:4px;">
+          <button class="btn-save" style="background:var(--blue);" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn-save" style="background:var(--surface3); color:var(--text-dim); border:1px solid var(--border);" onclick="exportJSON()">⬇ JSON</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- FIRST LAUNCH MODAL -->
@@ -2886,6 +2898,44 @@ function renderWeightCard() {
       <span class="weight-history-delta ${dCls}">${dStr}</span>
     </div>`;
   }).join('');
+}
+
+// ─── DATA EXPORT ──────────────────────────────────────────────────────────────
+function exportJSON() {
+  const data = {
+    exportDate: new Date().toISOString(),
+    profile: loadProfile(),
+    entries: state.entries || [],
+    weightLog: loadWeightLog(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `nutrichat-export-${todayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV() {
+  const rows = [['Date','Type','Name','Calories','Protein(g)','Fiber(g)','Carbs(g)','Fat(g)','Water(oz)','Activity Cal Burned','Duration(min)','Meal Tag']];
+  (state.entries || []).forEach(e => {
+    if (e.type === 'food') {
+      rows.push([e.date, 'food', `"${e.name}"`, e.macros?.cal||0, e.macros?.p||0, e.macros?.fiber||0, e.macros?.c||0, e.macros?.f||0, '', '', '', e.mealTag||'']);
+    } else if (e.type === 'activity') {
+      rows.push([e.date, 'activity', `"${e.name}"`, '', '', '', '', '', '', e.cal||0, e.duration||'', '']);
+    } else if (e.type === 'water') {
+      rows.push([e.date, 'water', `"${e.name}"`, '', '', '', '', '', e.oz||0, '', '', '']);
+    }
+  });
+  const csv  = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `nutrichat-export-${todayKey()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
