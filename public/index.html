@@ -514,6 +514,19 @@
       background: var(--surface3); color: var(--text-muted);
     }
 
+    /* ─── MEAL TAG SELECTOR ─── */
+    .meal-tag-selector {
+      display: flex; gap: 6px; margin: 8px 0 4px; flex-wrap: wrap;
+    }
+    .meal-tag-btn {
+      flex: 1; min-width: 60px; padding: 7px 4px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface2);
+      font-family: var(--font); font-size: 12px; color: var(--text-dim);
+      cursor: pointer; transition: all 0.15s; text-align: center; white-space: nowrap;
+    }
+    .meal-tag-btn:active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
+    .meal-tag-btn.selected { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
+
     /* ─── WEIGHT TRACKING ─── */
     .weight-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
@@ -1664,8 +1677,12 @@ function pruneOldEntries() {
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - MAX_DAYS);
   const cutoffKey = cutoff.toISOString().slice(0,10);
   state.entries = (state.entries || []).filter(e => e.date >= cutoffKey);
+  // Reset chat messages if the session date has changed
   const today = todayKey();
-  state.messages = (state.messages || []).filter(m => m.ts && m.ts.slice(0,10) === today);
+  if (state.sessionDate && state.sessionDate !== today) {
+    state.messages = [];
+  }
+  state.sessionDate = today;
 }
 
 let state = loadState();
@@ -1930,6 +1947,7 @@ const WEEKLY_KWS = ["how was my week","weekly summary","this week","week summary
 function looksLikeWeekly(t) { return WEEKLY_KWS.some(k => t.toLowerCase().includes(k)); }
 
 let editingEntryId = null;
+let _pendingFoodEntry = null;
 
 function startEdit(id) {
   const entry = state.entries.find(e => e.id === id);
@@ -1959,6 +1977,126 @@ function clearToday() {
   saveState(); renderLog(); renderToday();
   appendBubble('ai', "Today's log has been cleared.");
   saveMessage('ai', "Today's log has been cleared.");
+}
+
+// ─── FOOD CONFIRM CARD ────────────────────────────────────────────────────────
+function showFoodConfirmCard(parsed) {
+  _pendingFoodEntry = parsed;
+  // Default tag based on current time, but user can override
+  _pendingFoodEntry._mealTag = getMealTag(new Date().toISOString());
+
+  const row = document.createElement('div');
+  row.className = 'bubble-row ai';
+  row.id = 'food-confirm-row';
+  const avatar = document.createElement('div');
+  avatar.className = 'bubble-avatar';
+  avatar.textContent = 'N';
+  const wrap  = document.createElement('div');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'barcode-product-name';
+  nameEl.textContent = parsed.desc;
+  bubble.appendChild(nameEl);
+
+  if (parsed.notes) {
+    const notesEl = document.createElement('div');
+    notesEl.className = 'barcode-product-serving';
+    notesEl.textContent = '💡 ' + parsed.notes;
+    bubble.appendChild(notesEl);
+  }
+
+  const macroCard = document.createElement('div');
+  macroCard.className = 'macro-card';
+  macroCard.innerHTML = `
+    <div class="macro-item"><div class="macro-val cal">${parsed.cal}</div><div class="macro-label">kcal</div></div>
+    <div class="macro-item"><div class="macro-val pro">${parsed.pro}g</div><div class="macro-label">protein</div></div>
+    <div class="macro-item"><div class="macro-val fiber">${parsed.fiber||0}g</div><div class="macro-label">fiber</div></div>
+    <div class="macro-item"><div class="macro-val carb">${parsed.carb}g</div><div class="macro-label">carbs</div></div>
+    <div class="macro-item"><div class="macro-val fat">${parsed.fat}g</div><div class="macro-label">fat</div></div>`;
+  bubble.appendChild(macroCard);
+
+  // Meal tag selector
+  const tagSelector = document.createElement('div');
+  tagSelector.className = 'meal-tag-selector';
+  tagSelector.id = 'meal-tag-selector';
+  const tagDefs = [
+    { key: 'breakfast', label: '🌅 Breakfast' },
+    { key: 'lunch',     label: '☀️ Lunch' },
+    { key: 'snack',     label: '🍎 Snack' },
+    { key: 'dinner',    label: '🌙 Dinner' },
+  ];
+  tagDefs.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'meal-tag-btn' + (t.key === _pendingFoodEntry._mealTag ? ' selected' : '');
+    btn.textContent = t.label;
+    btn.dataset.tag = t.key;
+    btn.onclick = () => {
+      _pendingFoodEntry._mealTag = t.key;
+      document.querySelectorAll('#meal-tag-selector .meal-tag-btn')
+        .forEach(b => b.classList.toggle('selected', b.dataset.tag === t.key));
+    };
+    tagSelector.appendChild(btn);
+  });
+  bubble.appendChild(tagSelector);
+
+  const actions = document.createElement('div');
+  actions.className = 'barcode-actions';
+  const logBtn = document.createElement('button');
+  logBtn.className = 'barcode-log-btn';
+  logBtn.textContent = '✓ Log it';
+  logBtn.onclick = () => confirmFoodLog();
+  const editBtn = document.createElement('button');
+  editBtn.className = 'barcode-edit-btn';
+  editBtn.textContent = '✎ Edit';
+  editBtn.onclick = () => { fillInput(parsed.desc); clearFoodConfirmCard(); };
+  actions.appendChild(logBtn);
+  actions.appendChild(editBtn);
+  bubble.appendChild(actions);
+
+  const time = document.createElement('div');
+  time.className = 'bubble-time';
+  time.textContent = formatTime(new Date().toISOString());
+  wrap.appendChild(bubble);
+  wrap.appendChild(time);
+  row.appendChild(avatar);
+  row.appendChild(wrap);
+  chatMsgs.appendChild(row);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function clearFoodConfirmCard() {
+  _pendingFoodEntry = null;
+  const existing = document.getElementById('food-confirm-row');
+  if (existing) existing.remove();
+}
+
+function confirmFoodLog() {
+  const parsed = _pendingFoodEntry;
+  if (!parsed) return;
+  clearFoodConfirmCard();
+  const entryTs = new Date().toISOString();
+  const isEditConfirm = !!parsed._editingId;
+  const entry = {
+    id: isEditConfirm ? parsed._editingId : Date.now(),
+    type: 'food', name: parsed.desc,
+    macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
+    ts: entryTs, date: todayKey(),
+    mealTag: parsed._mealTag || getMealTag(entryTs)
+  };
+  if (isEditConfirm) {
+    state.entries = state.entries.map(e => e.id === parsed._editingId ? entry : e);
+  } else {
+    state.entries.push(entry);
+  }
+  saveState();
+  buildRecentMeals();
+  renderToday();
+  const macros = { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat };
+  const rt = `${isEditConfirm ? 'Updated' : 'Logged'} — ${parsed.desc}.`;
+  appendBubble('ai', rt, macros);
+  saveMessage('ai', rt, macros);
 }
 
 // ─── DAILY SUMMARY ────────────────────────────────────────────────────────────
@@ -2262,23 +2400,20 @@ async function sendMessage() {
     }
 
     // It's food
-    const entryTs = new Date().toISOString();
-    const entry = {
-      id: isEditing ? editingEntryId : Date.now(), type: 'food', name: parsed.desc,
-      macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
-      ts: entryTs, date: todayKey(),
-      mealTag: isEditing
-        ? (state.entries.find(e => e.id === editingEntryId)?.mealTag || getMealTag(entryTs))
-        : getMealTag(entryTs)
-    };
-    if (isEditing) state.entries = state.entries.map(e => e.id === editingEntryId ? entry : e);
-    else state.entries.push(entry);
-    saveState();
-    buildRecentMeals();
-    const rt = `${isEditing?'Updated':'Logged'} — ${parsed.desc}.${parsed.notes?' '+parsed.notes:''}`;
-    const macros = { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat };
-    appendBubble('ai', rt, macros); saveMessage('ai', rt, macros);
-    cancelEdit();
+    if (isEditing) {
+      // Editing — show confirm card with existing meal tag pre-selected
+      const existingTag = state.entries.find(e => e.id === editingEntryId)?.mealTag;
+      parsed._editingId = editingEntryId;
+      parsed._mealTag = existingTag || getMealTag(new Date().toISOString());
+      clearFoodConfirmCard();
+      _pendingFoodEntry = parsed;
+      showFoodConfirmCard(parsed);
+      cancelEdit();
+    } else {
+      clearFoodConfirmCard();
+      showFoodConfirmCard(parsed);
+      cancelEdit();
+    }
   } catch(err) {
     typingRow.remove();
     const msg = err.message.includes('timeout') ? 'Request timed out — check your connection.' : `Something went wrong: ${err.message}`;
