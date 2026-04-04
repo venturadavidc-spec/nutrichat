@@ -3062,6 +3062,22 @@ async function sendPastDayMessage() {
   const dateLabel = formatDateLabel(dateKey);
 
   try {
+    // Check for water first — handle client-side like main chat
+    if (looksLikeWater(text)) {
+      const oz = parseWaterOz(text);
+      const entry = {
+        id: Date.now(), type: 'water', name: `Water (${oz} oz)`, oz,
+        ts: new Date(dateKey + 'T12:00:00').toISOString(), date: dateKey
+      };
+      state.entries.push(entry);
+      saveState();
+      renderToday();
+      input.placeholder = `✓ Logged ${oz} oz to ${dateLabel}!`;
+      setTimeout(() => { input.placeholder = 'Add food to this day...'; }, 2000);
+      sendBtn.disabled = false;
+      return;
+    }
+
     const res = await fetch('/analyze', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, profile }),
