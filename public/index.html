@@ -601,6 +601,32 @@
     .weight-history-delta.down { color: var(--green); }
     .weight-history-delta.up   { color: var(--coral); }
 
+    /* ─── PAST DAY INPUT BAR ─── */
+    .past-day-input-bar {
+      position: sticky; bottom: 0; left: 0; right: 0;
+      background: var(--bg); border-top: 1px solid var(--border);
+      padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .past-day-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 22px; padding: 10px 16px;
+      font-family: var(--font); font-size: 15px; color: var(--text);
+      outline: none; transition: border-color 0.15s; -webkit-appearance: none; appearance: none;
+    }
+    .past-day-input:focus { border-color: var(--green-dim); }
+    .past-day-input::placeholder { color: var(--text-muted); }
+    .past-day-send-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--green); border: none; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+    }
+    .past-day-send-btn:active { background: var(--green-dim); transform: scale(0.94); }
+    .past-day-send-btn:disabled { background: var(--surface3); }
+    .past-day-send-btn svg { width: 18px; height: 18px; color: #0f1410; }
+    .past-day-send-btn:disabled svg { color: var(--text-muted); }
+
     /* ─── STREAK BADGE ─── */
     .streak-badge {
       display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -1085,6 +1111,20 @@
         <div class="empty-state-icon">🥗</div>
         No meals logged for this day.<br>Head to Chat to get started.
       </div>
+    </div>
+
+    <!-- Past day entry bar — only shown when viewing a previous day -->
+    <div class="past-day-input-bar" id="past-day-input-bar" style="display:none;">
+      <input class="past-day-input" id="past-day-input"
+        type="text" placeholder="Add food to this day..."
+        autocomplete="off" autocorrect="on" autocapitalize="sentences"/>
+      <button class="past-day-send-btn" id="past-day-send-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -1827,6 +1867,8 @@ function updateDayNav() {
   nextBtn.disabled = viewedDateOffset >= 0;
   document.getElementById('today-section-label').textContent =
     viewedDateOffset === 0 ? 'Daily overview' : `Overview — ${formatDateLabel(key)}`;
+  const pastBar = document.getElementById('past-day-input-bar');
+  if (pastBar) pastBar.style.display = viewedDateOffset < 0 ? '' : 'none';
 }
 
 // ─── VIEW SWITCHING ───────────────────────────────────────────────────────────
@@ -2986,6 +3028,203 @@ function exportCSV() {
   a.download = `nutrichat-export-${todayKey()}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ─── PAST DAY LOGGING ─────────────────────────────────────────────────────────
+(function initPastDayInput() {
+  const input   = document.getElementById('past-day-input');
+  const sendBtn = document.getElementById('past-day-send-btn');
+  if (!input || !sendBtn) return;
+
+  input.addEventListener('input', () => {
+    sendBtn.disabled = !input.value.trim();
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); sendPastDayMessage(); }
+  });
+
+  sendBtn.addEventListener('click', sendPastDayMessage);
+})();
+
+async function sendPastDayMessage() {
+  const input   = document.getElementById('past-day-input');
+  const sendBtn = document.getElementById('past-day-send-btn');
+  const text    = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  sendBtn.disabled = true;
+  input.placeholder = 'Analyzing...';
+
+  const profile   = getProfile();
+  const dateKey   = getViewedDateKey();
+  const dateLabel = formatDateLabel(dateKey);
+
+  try {
+    const res = await fetch('/analyze', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, profile }),
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const parsed = await res.json();
+
+    if (parsed.error === 'not_food') {
+      // Try activity
+      const res2 = await fetch('/analyze-activity', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, profile }),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!res2.ok) throw new Error(`Server error ${res2.status}`);
+      const parsed2 = await res2.json();
+
+      if (parsed2.error === 'not_activity') {
+        input.placeholder = `Couldn't understand that — try again`;
+        setTimeout(() => { input.placeholder = 'Add food to this day...'; }, 2500);
+        return;
+      }
+      // Log activity directly to past day
+      const entry = {
+        id: Date.now(), type: 'activity', name: parsed2.desc,
+        cal: parsed2.cal, duration: parsed2.duration, met: parsed2.met,
+        ts: new Date(dateKey + 'T12:00:00').toISOString(), date: dateKey
+      };
+      state.entries.push(entry);
+      saveState();
+      renderToday();
+      input.placeholder = `✓ Logged to ${dateLabel}!`;
+      setTimeout(() => { input.placeholder = 'Add food to this day...'; }, 2000);
+      return;
+    }
+
+    if (parsed.error) {
+      input.placeholder = parsed.message || 'Something went wrong — try again';
+      setTimeout(() => { input.placeholder = 'Add food to this day...'; }, 2500);
+      return;
+    }
+
+    // Food — show confirm card scoped to past date
+    parsed._pastDate = dateKey;
+    parsed._pastLabel = dateLabel;
+    clearFoodConfirmCard();
+    showPastDayConfirmCard(parsed);
+
+  } catch(err) {
+    input.placeholder = 'Something went wrong — try again';
+    setTimeout(() => { input.placeholder = 'Add food to this day...'; }, 2500);
+  }
+
+  sendBtn.disabled = false;
+}
+
+function showPastDayConfirmCard(parsed) {
+  _pendingFoodEntry = parsed;
+  _pendingFoodEntry._mealTag = getMealTag(new Date().toISOString());
+
+  // Build confirm card — reuse existing styles
+  const existing = document.getElementById('past-day-confirm-wrap');
+  if (existing) existing.remove();
+
+  const wrap = document.createElement('div');
+  wrap.id = 'past-day-confirm-wrap';
+  wrap.style.cssText = 'padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--border);';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'barcode-product-name';
+  nameEl.textContent = parsed.desc;
+  wrap.appendChild(nameEl);
+
+  if (parsed.notes) {
+    const notesEl = document.createElement('div');
+    notesEl.className = 'barcode-product-serving';
+    notesEl.textContent = '💡 ' + parsed.notes;
+    wrap.appendChild(notesEl);
+  }
+
+  const macroCard = document.createElement('div');
+  macroCard.className = 'macro-card';
+  macroCard.innerHTML = `
+    <div class="macro-item"><div class="macro-val cal">${parsed.cal}</div><div class="macro-label">kcal</div></div>
+    <div class="macro-item"><div class="macro-val pro">${parsed.pro}g</div><div class="macro-label">protein</div></div>
+    <div class="macro-item"><div class="macro-val fiber">${parsed.fiber||0}g</div><div class="macro-label">fiber</div></div>
+    <div class="macro-item"><div class="macro-val carb">${parsed.carb}g</div><div class="macro-label">carbs</div></div>
+    <div class="macro-item"><div class="macro-val fat">${parsed.fat}g</div><div class="macro-label">fat</div></div>`;
+  wrap.appendChild(macroCard);
+
+  // Meal tag selector
+  const tagSelector = document.createElement('div');
+  tagSelector.className = 'meal-tag-selector';
+  tagSelector.id = 'past-day-tag-selector';
+  const tagDefs = [
+    { key: 'breakfast', label: '🌅 Breakfast' },
+    { key: 'lunch',     label: '☀️ Lunch' },
+    { key: 'snack',     label: '🍎 Snack' },
+    { key: 'dinner',    label: '🌙 Dinner' },
+  ];
+  tagDefs.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'meal-tag-btn' + (t.key === _pendingFoodEntry._mealTag ? ' selected' : '');
+    btn.textContent = t.label;
+    btn.dataset.tag = t.key;
+    btn.onclick = () => {
+      _pendingFoodEntry._mealTag = t.key;
+      document.querySelectorAll('#past-day-tag-selector .meal-tag-btn')
+        .forEach(b => b.classList.toggle('selected', b.dataset.tag === t.key));
+    };
+    tagSelector.appendChild(btn);
+  });
+  wrap.appendChild(tagSelector);
+
+  const actions = document.createElement('div');
+  actions.className = 'barcode-actions';
+
+  const logBtn = document.createElement('button');
+  logBtn.className = 'barcode-log-btn';
+  logBtn.textContent = `✓ Log to ${parsed._pastLabel}`;
+  logBtn.onclick = () => confirmPastDayLog();
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'barcode-edit-btn';
+  cancelBtn.textContent = '✕ Cancel';
+  cancelBtn.onclick = () => {
+    _pendingFoodEntry = null;
+    wrap.remove();
+  };
+
+  actions.appendChild(logBtn);
+  actions.appendChild(cancelBtn);
+  wrap.appendChild(actions);
+
+  // Insert above the input bar
+  const inputBar = document.getElementById('past-day-input-bar');
+  inputBar.parentNode.insertBefore(wrap, inputBar);
+}
+
+function confirmPastDayLog() {
+  const parsed = _pendingFoodEntry;
+  if (!parsed) return;
+  const wrap = document.getElementById('past-day-confirm-wrap');
+  if (wrap) wrap.remove();
+  _pendingFoodEntry = null;
+
+  const dateKey = parsed._pastDate || getViewedDateKey();
+  const entry = {
+    id: Date.now(), type: 'food', name: parsed.desc,
+    macros: { cal: parsed.cal, p: parsed.pro, fiber: parsed.fiber||0, c: parsed.carb, f: parsed.fat },
+    ts: new Date(dateKey + 'T12:00:00').toISOString(),
+    date: dateKey,
+    mealTag: parsed._mealTag || 'dinner'
+  };
+  state.entries.push(entry);
+  saveState();
+  buildRecentMeals();
+  renderToday();
+
+  const input = document.getElementById('past-day-input');
+  input.placeholder = `✓ Logged to ${parsed._pastLabel}!`;
+  setTimeout(() => { input.placeholder = 'Add food to this day...'; }, 2000);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
