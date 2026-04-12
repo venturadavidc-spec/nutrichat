@@ -175,7 +175,9 @@ app.post('/analyze-drinks', async (req, res) => {
   const nowStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+  const nowTs = Date.now();
   const prompt = `You are a drink logging parser for a BAC tracking app.
+Current Unix timestamp in milliseconds: ${nowTs}
 Current time: ${nowStr} on ${dateStr}.
 Session started at: ${sessionStartTs ? new Date(sessionStartTs).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : 'just now'}.
 
@@ -185,15 +187,20 @@ Parse this into individual drinks with timestamps. Each drink needs:
 - name: friendly name (e.g. "Beer", "Shot of Vodka", "Glass of Wine")
 - emoji: single appropriate emoji
 - alcoholOz: fluid ounces of pure alcohol (beer 12oz=0.6, wine 5oz=0.6, shot 1.5oz=0.6, hard seltzer=0.55, strong cocktail=0.75, light beer=0.45)
-- ts: Unix timestamp in milliseconds for when this drink was consumed
+- ts: Unix timestamp in milliseconds. Use ${nowTs} as your reference for "right now".
+  For times in the past (e.g. "at 7pm" when it is now 10pm), subtract the appropriate
+  milliseconds from ${nowTs}. One hour = 3600000ms. Do NOT use hardcoded dates.
 
 Rules:
-- If the user specifies times like "7pm", "8:30pm", use those exact times for today's date (or yesterday if the time has already passed today and context suggests last night)
-- If they say "starting at 7pm one an hour for 4 hours", generate 4 drinks at 7pm, 8pm, 9pm, 10pm
-- If they say "over the last 2 hours", spread drinks evenly across the last 2 hours from now
-- If no time specified, use current time
-- If they say "last night" or times that have already passed today, use yesterday's date
-- Be generous in parsing drink types — "brewski" = beer, "vino" = wine, "whiskey" = shot, etc.
+- If the user specifies times like "7pm" and current time is ${nowStr}, calculate
+  the difference in hours and subtract that many hours in ms from ${nowTs}
+- If they say "starting at 7pm one an hour for 4 hours", generate drinks at
+  7pm, 8pm, 9pm, 10pm using ms offsets from ${nowTs}
+- If they say "over the last 2 hours", spread drinks evenly:
+  first drink at ${nowTs} - 7200000, last at ${nowTs}
+- If no time specified, use ${nowTs}
+- If they say "last night", subtract approximately 12-18 hours from ${nowTs}
+- Be generous in parsing drink types
 
 Respond ONLY with valid JSON, no markdown, no explanation:
 {
@@ -202,13 +209,13 @@ Respond ONLY with valid JSON, no markdown, no explanation:
       "name": "Beer",
       "emoji": "🍺",
       "alcoholOz": 0.6,
-      "ts": 1234567890000
+      "ts": ${nowTs}
     }
   ],
-  "summary": "One-line summary of what was parsed, e.g. '4 beers from 7pm to 10pm'"
+  "summary": "One-line summary of what was parsed"
 }
 
-If you cannot parse any drinks, respond with:
+If you cannot parse any drinks:
 { "drinks": [], "summary": "Could not parse drinks from that input" }`;
 
   try {

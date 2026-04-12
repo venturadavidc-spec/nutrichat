@@ -3560,6 +3560,8 @@ function startBacSession() {
 function endBacSession() {
   const session = loadBacSession();
   if (!session) return;
+  session.closed = true;
+  saveBacSession(session);
   const history = loadBacHistory();
   const profile = loadProfile();
   const peakBac = session.drinks.reduce((peak, _, i, arr) => {
@@ -3616,9 +3618,8 @@ function startBacTimer() {
   if (_bacTimer) return;
   _bacTimer = setInterval(() => {
     const session = loadBacSession();
-    if (!session || isSessionExpired(session)) {
+    if (!session) {
       clearInterval(_bacTimer); _bacTimer = null;
-      if (session && isSessionExpired(session)) endBacSession();
       return;
     }
     updateBacDisplay(session);
@@ -3723,13 +3724,13 @@ function renderBacHistory() {
 
 function renderBacView() {
   const session   = loadBacSession();
-  const expired   = isSessionExpired(session);
+  const hasActive = session && !session.closed;
   const activeEl  = document.getElementById('bac-session-active');
   const noneEl    = document.getElementById('bac-session-none');
   const inputArea = document.getElementById('bac-input-area');
   const quickBtns = document.getElementById('bac-quick-drinks');
 
-  if (session && !expired) {
+  if (hasActive) {
     activeEl.style.display  = '';
     noneEl.style.display    = 'none';
     inputArea.style.display = '';
