@@ -3521,7 +3521,7 @@ function calcBAC(drinks, profile, atTime) {
     .filter(d => d.ts <= now)
     .reduce((s, d) => s + (d.alcoholOz || 0.6), 0);
   const alcoholGrams = alcoholOzTotal * 23.34;
-  const raw = (alcoholGrams / (weightKg * r * 1000)) - (0.015 * hoursSinceFirst);
+  const raw = (alcoholGrams / (weightKg * r)) - (0.015 * hoursSinceFirst);
   return Math.max(Math.round(raw * 1000) / 1000, 0);
 }
 
