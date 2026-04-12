@@ -466,7 +466,7 @@
 
     /* ─── BOTTOM NAV ─── */
     #bottom-nav {
-      flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
       background: var(--surface); border-top: 1px solid var(--border);
       padding-bottom: var(--safe-bottom);
     }
@@ -919,6 +919,135 @@
     .chip-pin-btn svg { display: block; }
     .chip-pin-btn.pinned { opacity: 0.9; }
     .chip-pin-btn.pinned svg { color: var(--amber); }
+
+    /* ─── BAC TRACKER ─── */
+    #view-bac {
+      display: none; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch; padding: 16px;
+    }
+    #view-bac.active { display: block; }
+
+    .bac-display-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 20px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .bac-number-wrap { display: flex; align-items: baseline; gap: 8px; }
+    .bac-number {
+      font-family: var(--mono); font-size: 52px; font-weight: 500;
+      line-height: 1; transition: color 0.4s;
+    }
+    .bac-number.green  { color: var(--green); }
+    .bac-number.yellow { color: var(--amber); }
+    .bac-number.red    { color: var(--coral); }
+    .bac-unit { font-family: var(--mono); font-size: 14px; color: var(--text-muted); }
+    .bac-status-bar {
+      font-size: 13px; color: var(--text-dim); text-align: center; line-height: 1.5;
+    }
+    .bac-sober-time {
+      font-family: var(--mono); font-size: 12px; color: var(--text-muted); text-align: center;
+    }
+
+    .bac-stats-strip {
+      display: flex; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 10px;
+    }
+    .bac-stat-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 12px 8px;
+    }
+    .bac-stat-cell + .bac-stat-cell { border-left: 1px solid var(--border); }
+    .bac-stat-val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); }
+    .bac-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .bac-legal-warn {
+      background: rgba(248,113,113,0.12); border: 1px solid var(--coral-dim);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 13px; color: var(--coral); margin-bottom: 10px; line-height: 1.5;
+    }
+
+    .bac-drink-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .bac-drink-name { font-size: 14px; color: var(--text); font-weight: 500; }
+    .bac-drink-time { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .bac-drink-abv  { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+    .bac-drink-del  {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 16px; cursor: pointer; padding: 4px 6px; line-height: 1;
+    }
+    .bac-drink-del:active { color: var(--coral); }
+
+    .bac-end-btn {
+      width: 100%; margin-top: 8px; padding: 12px; border-radius: var(--radius-sm);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-muted); font-family: var(--font); font-size: 14px;
+      cursor: pointer; transition: all 0.15s; margin-bottom: 16px;
+    }
+    .bac-end-btn:active { background: rgba(248,113,113,0.1); border-color: var(--coral-dim); color: var(--coral); }
+
+    .bac-empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: 12px; padding: 48px 24px 32px;
+    }
+    .bac-empty-icon  { font-size: 40px; }
+    .bac-empty-title { font-size: 20px; font-weight: 600; color: var(--text); }
+    .bac-empty-sub   { font-size: 14px; color: var(--text-dim); line-height: 1.5; max-width: 260px; }
+    .bac-start-btn {
+      padding: 12px 32px; border-radius: var(--radius-sm);
+      background: var(--green); border: none; color: #0f1410;
+      font-family: var(--font); font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; margin-top: 4px;
+    }
+    .bac-start-btn:active { background: var(--green-dim); }
+
+    .bac-history-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
+    }
+    .bac-history-date { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .bac-history-stats { display: flex; gap: 16px; font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
+
+    .bac-input-area {
+      position: sticky; bottom: 0; background: var(--bg);
+      border-top: 1px solid var(--border); padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .bac-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 22px; padding: 10px 16px;
+      font-family: var(--font); font-size: 15px; color: var(--text);
+      outline: none; transition: border-color 0.15s; -webkit-appearance: none; appearance: none;
+    }
+    .bac-input:focus { border-color: var(--green-dim); }
+    .bac-input::placeholder { color: var(--text-muted); }
+    .bac-send-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--amber); border: none; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .bac-send-btn:active  { background: var(--amber-dim); }
+    .bac-send-btn:disabled { background: var(--surface3); }
+    .bac-send-btn svg { width: 18px; height: 18px; color: #0f1410; }
+    .bac-send-btn:disabled svg { color: var(--text-muted); }
+
+    .bac-quick-drinks {
+      display: flex; gap: 8px; padding: 8px 12px 4px;
+      background: var(--bg); overflow-x: auto;
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .bac-quick-drinks::-webkit-scrollbar { display: none; }
+    .bac-quick-btn {
+      flex-shrink: 0; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px; font-size: 13px;
+      color: var(--text-dim); cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .bac-quick-btn:active { background: rgba(245,158,11,0.12); border-color: var(--amber-dim); color: var(--amber); }
   </style>
 </head>
 <body>
@@ -1409,6 +1538,86 @@
     </div>
   </div>
 
+  <!-- BAC TRACKER VIEW -->
+  <div class="view" id="view-bac">
+    <div id="bac-session-active" style="display:none;">
+
+      <!-- BAC Display -->
+      <div class="bac-display-card" id="bac-display-card">
+        <div class="bac-number-wrap">
+          <div class="bac-number" id="bac-number">0.000</div>
+          <div class="bac-unit">% BAC</div>
+        </div>
+        <div class="bac-status-bar" id="bac-status-bar"></div>
+        <div class="bac-sober-time" id="bac-sober-time"></div>
+      </div>
+
+      <!-- Session stats strip -->
+      <div class="bac-stats-strip">
+        <div class="bac-stat-cell">
+          <div class="bac-stat-val" id="bac-peak">0.000</div>
+          <div class="bac-stat-lbl">Peak BAC</div>
+        </div>
+        <div class="bac-stat-cell">
+          <div class="bac-stat-val" id="bac-drink-count">0</div>
+          <div class="bac-stat-lbl">Drinks</div>
+        </div>
+        <div class="bac-stat-cell">
+          <div class="bac-stat-val" id="bac-hours">0h</div>
+          <div class="bac-stat-lbl">Session</div>
+        </div>
+      </div>
+
+      <!-- Legal warning -->
+      <div class="bac-legal-warn" id="bac-legal-warn" style="display:none;">
+        ⚠️ Above legal driving limit (0.08%). Clear to drive in <span id="bac-drive-time">—</span>.
+      </div>
+
+      <!-- Drink log list -->
+      <div class="section-label">Drinks this session</div>
+      <div id="bac-drink-list"></div>
+
+      <!-- End session -->
+      <button class="bac-end-btn" onclick="endBacSession()">End Session</button>
+    </div>
+
+    <!-- No active session -->
+    <div id="bac-session-none" style="display:none;">
+      <div class="bac-empty-state">
+        <div class="bac-empty-icon">🍺</div>
+        <div class="bac-empty-title">No active session</div>
+        <div class="bac-empty-sub">Start a new session to track your BAC in real time, or log a past session.</div>
+        <button class="bac-start-btn" onclick="startBacSession()">Start Session</button>
+      </div>
+      <div id="bac-history-section" style="display:none;">
+        <div class="section-label">Recent Sessions</div>
+        <div id="bac-history-list"></div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="bac-input-area" id="bac-input-area" style="display:none;">
+      <input class="bac-input" id="bac-input" type="text"
+        placeholder="e.g. 1 beer, 2 shots of vodka..."
+        autocomplete="off" autocorrect="on" autocapitalize="sentences"/>
+      <button class="bac-send-btn" id="bac-send-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Quick drink buttons -->
+    <div class="bac-quick-drinks" id="bac-quick-drinks" style="display:none;">
+      <div class="bac-quick-btn" onclick="quickAddDrink('beer')">🍺 Beer</div>
+      <div class="bac-quick-btn" onclick="quickAddDrink('wine')">🍷 Wine</div>
+      <div class="bac-quick-btn" onclick="quickAddDrink('shot')">🥃 Shot</div>
+      <div class="bac-quick-btn" onclick="quickAddDrink('seltzer')">🫧 Seltzer</div>
+    </div>
+  </div>
+
   <!-- FIRST LAUNCH MODAL -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal-sheet">
@@ -1524,6 +1733,13 @@
       </svg>
       <span class="nav-tab-label">Profile</span>
     </div>
+    <div class="nav-tab" data-view="bac" onclick="switchView('bac')">
+      <div class="nav-tab-pip"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 22h8M12 11v11M5 7l1.5-5h11L19 7"/><path d="M5 7h14l-2 4H7L5 7z"/>
+      </svg>
+      <span class="nav-tab-label">BAC</span>
+    </div>
   </nav>
 
 </div>
@@ -1543,6 +1759,7 @@ const OVERRIDES_KEY = 'nutrichat_goal_overrides';
 const THEME_KEY      = 'nutrichat_theme';
 const FAVORITES_KEY  = 'nutrichat_favorites';
 const WEIGHT_KEY     = 'nutrichat_weight';
+const BAC_KEY        = 'nutrichat_bac';
 
 // ─── WEIGHT TRACKING ──────────────────────────────────────────────────────────
 function loadWeightLog() {
@@ -1901,6 +2118,7 @@ function switchView(name) {
   if (name === 'log')     renderLog();
   if (name === 'week')    renderWeek();
   if (name === 'profile') { populateProfileForm(getProfile()); renderWeightCard(); }
+  if (name === 'bac')     renderBacView();
 }
 
 // ─── RECENT MEALS ─────────────────────────────────────────────────────────────
@@ -3275,6 +3493,271 @@ if (!existingProfile) {
 restoreChat();
 buildRecentMeals();
 renderLog();
+
+// ─── BAC TRACKER ──────────────────────────────────────────────────────────────
+
+// Standard drink definitions (oz of pure alcohol)
+const DRINK_LIBRARY = {
+  beer:    { name: 'Beer (12oz)',          alcoholOz: 0.6,  emoji: '🍺' },
+  wine:    { name: 'Wine (5oz)',           alcoholOz: 0.6,  emoji: '🍷' },
+  shot:    { name: 'Shot (1.5oz)',         alcoholOz: 0.6,  emoji: '🥃' },
+  seltzer: { name: 'Hard Seltzer (12oz)', alcoholOz: 0.55, emoji: '🫧' },
+};
+
+function loadBacSession() {
+  try { return JSON.parse(localStorage.getItem(BAC_KEY)) || null; } catch { return null; }
+}
+function saveBacSession(session) {
+  if (session) localStorage.setItem(BAC_KEY, JSON.stringify(session));
+  else localStorage.removeItem(BAC_KEY);
+}
+
+// Widmark formula
+function calcBAC(drinks, profile, atTime) {
+  if (!drinks || !drinks.length) return 0;
+  const weightLbs = profile?.weightLbs || 185;
+  const weightKg  = weightLbs * 0.453592;
+  const r         = 0.68;
+  const now       = atTime || Date.now();
+  const firstDrinkTs = Math.min(...drinks.map(d => d.ts));
+  const hoursSinceFirst = (now - firstDrinkTs) / 3600000;
+  const alcoholOzTotal = drinks
+    .filter(d => d.ts <= now)
+    .reduce((s, d) => s + (d.alcoholOz || 0.6), 0);
+  const alcoholGrams = alcoholOzTotal * 23.34;
+  const raw = (alcoholGrams / (weightKg * r * 1000)) - (0.015 * hoursSinceFirst);
+  return Math.max(Math.round(raw * 1000) / 1000, 0);
+}
+
+function isSessionExpired(session) {
+  if (!session || !session.drinks || !session.drinks.length) return true;
+  const now = Date.now();
+  const firstTs = Math.min(...session.drinks.map(d => d.ts));
+  const lastTs  = Math.max(...session.drinks.map(d => d.ts));
+  if (now - firstTs > 18 * 3600000) return true;
+  const currentBac = calcBAC(session.drinks, loadProfile(), now);
+  const hoursSinceLast = (now - lastTs) / 3600000;
+  if (currentBac === 0 && hoursSinceLast >= 6) return true;
+  return false;
+}
+
+function startBacSession() {
+  const session = { startTs: Date.now(), drinks: [], closed: false };
+  saveBacSession(session);
+  renderBacView();
+}
+
+function endBacSession() {
+  const session = loadBacSession();
+  if (!session) return;
+  const history = loadBacHistory();
+  const profile = loadProfile();
+  const peakBac = session.drinks.reduce((peak, _, i, arr) => {
+    const bac = calcBAC(arr.slice(0, i + 1), profile, arr[i].ts + 1800000);
+    return Math.max(peak, bac);
+  }, 0);
+  history.unshift({
+    date: new Date(session.startTs).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    drinkCount: session.drinks.length,
+    peakBac: Math.round(peakBac * 1000) / 1000,
+    durationHrs: Math.round((Date.now() - session.startTs) / 3600000 * 10) / 10,
+  });
+  if (history.length > 10) history.pop();
+  localStorage.setItem('nutrichat_bac_history', JSON.stringify(history));
+  saveBacSession(null);
+  renderBacView();
+}
+
+function loadBacHistory() {
+  try { return JSON.parse(localStorage.getItem('nutrichat_bac_history')) || []; } catch { return []; }
+}
+
+function addDrinkToSession(drinkObj) {
+  let session = loadBacSession();
+  if (!session) return;
+  session.drinks.push(drinkObj);
+  session.drinks.sort((a, b) => a.ts - b.ts);
+  saveBacSession(session);
+  renderBacView();
+  startBacTimer();
+}
+
+function removeDrinkFromSession(idx) {
+  const session = loadBacSession();
+  if (!session) return;
+  session.drinks.splice(idx, 1);
+  saveBacSession(session);
+  renderBacView();
+}
+
+function quickAddDrink(type) {
+  const def = DRINK_LIBRARY[type];
+  if (!def) return;
+  addDrinkToSession({
+    name: def.name, emoji: def.emoji,
+    alcoholOz: def.alcoholOz,
+    ts: Date.now(),
+    isRetroactive: false,
+  });
+}
+
+let _bacTimer = null;
+function startBacTimer() {
+  if (_bacTimer) return;
+  _bacTimer = setInterval(() => {
+    const session = loadBacSession();
+    if (!session || isSessionExpired(session)) {
+      clearInterval(_bacTimer); _bacTimer = null;
+      if (session && isSessionExpired(session)) endBacSession();
+      return;
+    }
+    updateBacDisplay(session);
+  }, 30000);
+}
+
+function updateBacDisplay(session) {
+  const profile = loadProfile();
+  const now     = Date.now();
+  const bac     = calcBAC(session.drinks, profile, now);
+  const bacEl   = document.getElementById('bac-number');
+  if (!bacEl) return;
+
+  bacEl.textContent = bac.toFixed(3);
+  bacEl.className   = 'bac-number ' + (bac < 0.04 ? 'green' : bac < 0.08 ? 'yellow' : 'red');
+
+  const statusEl = document.getElementById('bac-status-bar');
+  if (bac === 0) {
+    statusEl.textContent = session.drinks.length ? 'Alcohol fully metabolized.' : 'No drinks logged yet.';
+  } else if (bac < 0.04) {
+    statusEl.textContent = 'Low impairment. Stay aware.';
+  } else if (bac < 0.08) {
+    statusEl.textContent = 'Moderate impairment. Do not drive.';
+  } else {
+    statusEl.textContent = 'Significant impairment. Do not drive.';
+  }
+
+  const soberEl = document.getElementById('bac-sober-time');
+  if (bac > 0) {
+    const hoursToSober = bac / 0.015;
+    const soberTs = now + hoursToSober * 3600000;
+    const soberTime = new Date(soberTs).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    soberEl.textContent = `Estimated sober at ${soberTime}`;
+  } else {
+    soberEl.textContent = '';
+  }
+
+  const legalEl = document.getElementById('bac-legal-warn');
+  if (bac >= 0.08) {
+    legalEl.style.display = '';
+    const hoursToLegal = (bac - 0.079) / 0.015;
+    const legalTs = now + hoursToLegal * 3600000;
+    const legalTime = new Date(legalTs).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('bac-drive-time').textContent = legalTime;
+  } else {
+    legalEl.style.display = 'none';
+  }
+
+  const peakBac = session.drinks.reduce((peak, _, i, arr) => {
+    const b = calcBAC(arr.slice(0, i + 1), profile, arr[i].ts + 1800000);
+    return Math.max(peak, b);
+  }, bac);
+  document.getElementById('bac-peak').textContent = Math.max(peakBac, bac).toFixed(3);
+  document.getElementById('bac-drink-count').textContent = session.drinks.length;
+
+  const hrs = (now - session.startTs) / 3600000;
+  document.getElementById('bac-hours').textContent = hrs < 1
+    ? Math.round(hrs * 60) + 'm'
+    : Math.round(hrs * 10) / 10 + 'h';
+}
+
+function renderBacDrinkList(session) {
+  const listEl = document.getElementById('bac-drink-list');
+  if (!listEl) return;
+  if (!session.drinks.length) {
+    listEl.innerHTML = '<div class="empty-state" style="padding:20px 0;">No drinks logged yet.</div>';
+    return;
+  }
+  listEl.innerHTML = session.drinks.map((d, i) => {
+    const timeStr = new Date(d.ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const dateStr = new Date(d.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const isToday = new Date(d.ts).toDateString() === new Date().toDateString();
+    return `<div class="bac-drink-item">
+      <div>
+        <div class="bac-drink-name">${d.emoji || '🍺'} ${d.name}</div>
+        <div class="bac-drink-time">${isToday ? '' : dateStr + ' · '}${timeStr}${d.isRetroactive ? ' · retroactive' : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="bac-drink-abv">${d.alcoholOz} oz alc.</div>
+        <button class="bac-drink-del" onclick="removeDrinkFromSession(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBacHistory() {
+  const history = loadBacHistory();
+  const histSection = document.getElementById('bac-history-section');
+  const histList    = document.getElementById('bac-history-list');
+  if (!history.length) { histSection.style.display = 'none'; return; }
+  histSection.style.display = '';
+  histList.innerHTML = history.map(h => `
+    <div class="bac-history-card">
+      <div class="bac-history-date">${h.date}</div>
+      <div class="bac-history-stats">
+        <span>${h.drinkCount} drinks</span>
+        <span>Peak ${h.peakBac.toFixed(3)}%</span>
+        <span>${h.durationHrs}h session</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderBacView() {
+  const session   = loadBacSession();
+  const expired   = isSessionExpired(session);
+  const activeEl  = document.getElementById('bac-session-active');
+  const noneEl    = document.getElementById('bac-session-none');
+  const inputArea = document.getElementById('bac-input-area');
+  const quickBtns = document.getElementById('bac-quick-drinks');
+
+  if (session && !expired) {
+    activeEl.style.display  = '';
+    noneEl.style.display    = 'none';
+    inputArea.style.display = '';
+    quickBtns.style.display = '';
+    updateBacDisplay(session);
+    renderBacDrinkList(session);
+    startBacTimer();
+  } else {
+    activeEl.style.display  = 'none';
+    noneEl.style.display    = '';
+    inputArea.style.display = 'none';
+    quickBtns.style.display = 'none';
+    renderBacHistory();
+  }
+}
+
+(function initBacInput() {
+  const input   = document.getElementById('bac-input');
+  const sendBtn = document.getElementById('bac-send-btn');
+  if (!input || !sendBtn) return;
+  input.addEventListener('input', () => { sendBtn.disabled = !input.value.trim(); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendBacMessage(); } });
+  sendBtn.addEventListener('click', sendBacMessage);
+})();
+
+async function sendBacMessage() {
+  const input   = document.getElementById('bac-input');
+  const sendBtn = document.getElementById('bac-send-btn');
+  const text    = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  sendBtn.disabled = true;
+  input.placeholder = 'Analyzing...';
+  // AI parsing wired in next prompt
+  input.placeholder = 'AI parsing coming in next update...';
+  setTimeout(() => { input.placeholder = 'e.g. 1 beer, 2 shots of vodka...'; }, 2000);
+  sendBtn.disabled = false;
+}
 </script>
 </body>
 </html>
