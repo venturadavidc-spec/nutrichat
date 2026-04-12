@@ -291,7 +291,15 @@
     .today-macro-val.fiber { color: var(--teal); }
     .today-macro-val.carb  { color: var(--amber); }
     .today-macro-val.fat   { color: var(--coral); }
-    .today-macro-lbl { font-size: 10px; color: var(--text-muted); }
+    .today-macro-lbl { font-size: 10px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.2px; }
+    .today-macro-name {
+      font-size: 9px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 1px;
+    }
+    .today-macro-name.pro   { color: var(--blue); }
+    .today-macro-name.fiber { color: var(--teal); }
+    .today-macro-name.carb  { color: var(--amber); }
+    .today-macro-name.fat   { color: var(--coral); }
 
     /* Net calories strip */
     .net-cal-strip {
@@ -787,9 +795,9 @@
     #quick-access-strip {
       flex-shrink: 0; border-top: 1px solid var(--border);
       background: var(--bg);
-      padding: 8px 16px 6px;
-      display: flex; flex-direction: column; gap: 6px;
-      max-height: 160px; overflow-y: auto; overflow-x: hidden;
+      padding: 6px 12px 4px;
+      display: flex; flex-direction: column; gap: 5px;
+      max-height: 150px; overflow-y: auto; overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
     }
     #quick-access-strip::-webkit-scrollbar { display: none; }
@@ -804,13 +812,13 @@
 
     /* ─── SCAN BUTTON ─── */
     #scan-btn {
-      width: 42px; height: 42px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%;
       background: var(--surface2); border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0; transition: border-color 0.15s, background 0.15s;
     }
     #scan-btn:active { border-color: var(--green-dim); background: var(--green-glow); }
-    #scan-btn svg { width: 18px; height: 18px; color: var(--text-dim); }
+    #scan-btn svg { width: 15px; height: 15px; color: var(--text-dim); }
 
     /* ─── SCANNER MODAL ─── */
     #scanner-modal {
@@ -1049,21 +1057,25 @@
       </div>
       <div class="today-macros-grid">
         <div class="today-macro">
+          <div class="today-macro-name pro">Protein</div>
           <div class="today-macro-val pro" id="today-p">0g</div>
           <div class="today-macro-lbl" id="today-p-lbl">Protein</div>
           <div class="today-macro-bar"><div class="today-macro-fill pro" id="today-p-bar" style="width:0%"></div></div>
         </div>
         <div class="today-macro">
+          <div class="today-macro-name fiber">Fiber</div>
           <div class="today-macro-val fiber" id="today-fiber">0g</div>
           <div class="today-macro-lbl" id="today-fiber-lbl">Fiber</div>
           <div class="today-macro-bar"><div class="today-macro-fill fiber" id="today-fiber-bar" style="width:0%"></div></div>
         </div>
         <div class="today-macro">
+          <div class="today-macro-name carb">Carbs</div>
           <div class="today-macro-val carb" id="today-c">0g</div>
           <div class="today-macro-lbl" id="today-c-lbl">Carbs</div>
           <div class="today-macro-bar"><div class="today-macro-fill carb" id="today-c-bar" style="width:0%"></div></div>
         </div>
         <div class="today-macro">
+          <div class="today-macro-name fat">Fat</div>
           <div class="today-macro-val fat" id="today-f">0g</div>
           <div class="today-macro-lbl" id="today-f-lbl">Fat</div>
           <div class="today-macro-bar"><div class="today-macro-fill fat" id="today-f-bar" style="width:0%"></div></div>
@@ -1516,6 +1528,14 @@
 
 </div>
 <script>
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function smartTruncate(name) {
+  const numWords = {'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10};
+  let s = name.toLowerCase().replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\b/g, m => numWords[m]);
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  return s.length > 28 ? s.slice(0, 26) + '…' : s;
+}
+
 // ─── STORAGE KEYS ─────────────────────────────────────────────────────────────
 const STORAGE_KEY   = 'nutrichat_v1';
 const PROFILE_KEY   = 'nutrichat_profile';
@@ -1904,7 +1924,7 @@ function buildRecentMeals() {
     favRow.innerHTML = favs.map(f => {
       const safeName = f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       return `<div class="chip-row">
-        <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">📌 ${f.name}</div>
+        <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">📌 ${smartTruncate(f.name)}</div>
         <button class="chip-pin-btn pinned" title="Unpin" onclick="event.stopPropagation();unpinMeal('${safeName}')">${PIN_FILLED_SVG}</button>
       </div>`;
     }).join('');
@@ -1929,7 +1949,7 @@ function buildRecentMeals() {
       const safeName = e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const pinned   = isPinned(e.name);
       return `<div class="chip-row">
-        <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">↩ ${e.name}</div>
+        <div class="recent-chip" onclick="fillInput('${safeName}')" style="max-width:160px;">↩ ${smartTruncate(e.name)}</div>
         <button class="chip-pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin'}"
           onclick="event.stopPropagation();${pinned?`unpinMeal('${safeName}')`:`pinMeal({name:'${safeName}',macros:{cal:${e.macros?.cal||0},p:${e.macros?.p||0},fiber:${e.macros?.fiber||0},c:${e.macros?.c||0},f:${e.macros?.f||0}}})`}"
         >${pinned ? PIN_FILLED_SVG : PIN_OUTLINE_SVG}</button>
