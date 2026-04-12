@@ -3526,14 +3526,28 @@ function calcBAC(drinks, profile, atTime) {
 }
 
 function isSessionExpired(session) {
-  if (!session || !session.drinks || !session.drinks.length) return true;
+  if (!session) return true;
+
+  // A session with no drinks yet is never considered expired
+  // — user just started it
+  if (!session.drinks || !session.drinks.length) {
+    // Only expire a drinkless session after 1 hour (they forgot to add drinks)
+    const hoursSinceStart = (Date.now() - session.startTs) / 3600000;
+    return hoursSinceStart > 1;
+  }
+
   const now = Date.now();
   const firstTs = Math.min(...session.drinks.map(d => d.ts));
   const lastTs  = Math.max(...session.drinks.map(d => d.ts));
+
+  // Hard backstop: 18 hours after first drink
   if (now - firstTs > 18 * 3600000) return true;
+
+  // Metabolization-based: BAC is 0 AND 6+ hours since last drink
   const currentBac = calcBAC(session.drinks, loadProfile(), now);
   const hoursSinceLast = (now - lastTs) / 3600000;
   if (currentBac === 0 && hoursSinceLast >= 6) return true;
+
   return false;
 }
 
