@@ -3752,10 +3752,51 @@ async function sendBacMessage() {
   if (!text) return;
   input.value = '';
   sendBtn.disabled = true;
-  input.placeholder = 'Analyzing...';
-  // AI parsing wired in next prompt
-  input.placeholder = 'AI parsing coming in next update...';
-  setTimeout(() => { input.placeholder = 'e.g. 1 beer, 2 shots of vodka...'; }, 2000);
+  input.placeholder = 'Parsing drinks...';
+
+  const session = loadBacSession();
+  if (!session) {
+    input.placeholder = 'Start a session first';
+    setTimeout(() => { input.placeholder = 'e.g. 1 beer, 2 shots of vodka...'; }, 2000);
+    sendBtn.disabled = false;
+    return;
+  }
+
+  try {
+    const res = await fetch('/analyze-drinks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, sessionStartTs: session.startTs }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error('Server error');
+    const parsed = await res.json();
+
+    if (!parsed.drinks || !parsed.drinks.length) {
+      input.placeholder = "Couldn't parse that — try 'had 2 beers at 8pm'";
+      setTimeout(() => { input.placeholder = 'e.g. 1 beer, 2 shots of vodka...'; }, 2500);
+      sendBtn.disabled = false;
+      return;
+    }
+
+    parsed.drinks.forEach(d => {
+      addDrinkToSession({
+        name:          d.name,
+        emoji:         d.emoji || '🍺',
+        alcoholOz:     d.alcoholOz || 0.6,
+        ts:            d.ts,
+        isRetroactive: d.ts < Date.now() - 300000,
+      });
+    });
+
+    input.placeholder = `✓ ${parsed.summary}`;
+    setTimeout(() => { input.placeholder = 'e.g. 1 beer, 2 shots of vodka...'; }, 3000);
+
+  } catch(err) {
+    input.placeholder = 'Something went wrong — try again';
+    setTimeout(() => { input.placeholder = 'e.g. 1 beer, 2 shots of vodka...'; }, 2500);
+  }
+
   sendBtn.disabled = false;
 }
 </script>

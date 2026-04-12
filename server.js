@@ -169,6 +169,64 @@ app.post('/lookup-barcode', async (req, res) => {
   }
 });
 
+app.post('/analyze-drinks', async (req, res) => {
+  const { text, sessionStartTs } = req.body;
+  const now = new Date();
+  const nowStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const prompt = `You are a drink logging parser for a BAC tracking app.
+Current time: ${nowStr} on ${dateStr}.
+Session started at: ${sessionStartTs ? new Date(sessionStartTs).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : 'just now'}.
+
+The user said: "${text}"
+
+Parse this into individual drinks with timestamps. Each drink needs:
+- name: friendly name (e.g. "Beer", "Shot of Vodka", "Glass of Wine")
+- emoji: single appropriate emoji
+- alcoholOz: fluid ounces of pure alcohol (beer 12oz=0.6, wine 5oz=0.6, shot 1.5oz=0.6, hard seltzer=0.55, strong cocktail=0.75, light beer=0.45)
+- ts: Unix timestamp in milliseconds for when this drink was consumed
+
+Rules:
+- If the user specifies times like "7pm", "8:30pm", use those exact times for today's date (or yesterday if the time has already passed today and context suggests last night)
+- If they say "starting at 7pm one an hour for 4 hours", generate 4 drinks at 7pm, 8pm, 9pm, 10pm
+- If they say "over the last 2 hours", spread drinks evenly across the last 2 hours from now
+- If no time specified, use current time
+- If they say "last night" or times that have already passed today, use yesterday's date
+- Be generous in parsing drink types — "brewski" = beer, "vino" = wine, "whiskey" = shot, etc.
+
+Respond ONLY with valid JSON, no markdown, no explanation:
+{
+  "drinks": [
+    {
+      "name": "Beer",
+      "emoji": "🍺",
+      "alcoholOz": 0.6,
+      "ts": 1234567890000
+    }
+  ],
+  "summary": "One-line summary of what was parsed, e.g. '4 beers from 7pm to 10pm'"
+}
+
+If you cannot parse any drinks, respond with:
+{ "drinks": [], "summary": "Could not parse drinks from that input" }`;
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const raw = response.content[0].text.trim();
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    res.json(parsed);
+  } catch (err) {
+    console.error('analyze-drinks error:', err);
+    res.status(500).json({ drinks: [], summary: 'Error parsing drinks' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
